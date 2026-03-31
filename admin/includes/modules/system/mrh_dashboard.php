@@ -117,6 +117,9 @@ class mrh_dashboard
         // Eigene Tabelle für Mega-Menü Config erstellen
         $this->createTables();
 
+        // Admin-Access Spalte anlegen (Zugriff für alle bestehenden Admins)
+        $this->addAdminAccess();
+
         // Config-Verzeichnis im Template erstellen
         $tpl_dir = DIR_FS_CATALOG . 'templates/' . CURRENT_TEMPLATE . '/config/';
         if (!is_dir($tpl_dir)) {
@@ -135,6 +138,9 @@ class mrh_dashboard
         $query = 'DELETE FROM `' . TABLE_CONFIGURATION . '`
                         WHERE `configuration_key` IN (' . $keys . ')';
         xtc_db_query($query);
+
+        // Admin-Access Spalte entfernen
+        $this->removeAdminAccess();
 
         // Tabellen NICHT löschen bei Deinstallation (Datensicherheit)
         // Nur bei explizitem Wunsch: $this->dropTables();
@@ -219,6 +225,54 @@ class mrh_dashboard
             $value,
             'readonly="true" style="opacity: 0.4;"'
         );
+    }
+
+    /**
+     * Admin-Access Spalte in der admin_access Tabelle anlegen.
+     * Gibt allen bestehenden Admins automatisch Zugriff (DEFAULT 1).
+     *
+     * @return void
+     */
+    private function addAdminAccess(): void
+    {
+        // Prüfen ob Spalte bereits existiert
+        $check = xtc_db_query(
+            'SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = "admin_access"
+               AND COLUMN_NAME = "mrh_dashboard"'
+        );
+        $exists = xtc_db_fetch_array($check);
+
+        if (!$exists) {
+            xtc_db_query(
+                'ALTER TABLE `admin_access`
+                 ADD COLUMN `mrh_dashboard` INT(1) NOT NULL DEFAULT 1'
+            );
+        }
+    }
+
+    /**
+     * Admin-Access Spalte aus der admin_access Tabelle entfernen.
+     *
+     * @return void
+     */
+    private function removeAdminAccess(): void
+    {
+        $check = xtc_db_query(
+            'SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME = "admin_access"
+               AND COLUMN_NAME = "mrh_dashboard"'
+        );
+        $exists = xtc_db_fetch_array($check);
+
+        if ($exists) {
+            xtc_db_query(
+                'ALTER TABLE `admin_access`
+                 DROP COLUMN `mrh_dashboard`'
+            );
+        }
     }
 
     /**
