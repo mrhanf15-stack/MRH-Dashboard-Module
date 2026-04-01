@@ -837,9 +837,39 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
 
       if (type === 'html') {
         html += '<div class="mb-3">';
-        html += '<label class="form-label fw-bold">HTML-Content:</label>';
-        html += '<div class="alert alert-info small"><i class="fa fa-info-circle"></i> Verwende HTML + Bootstrap 4 Klassen. Bilder-Pfad: <code>/images/banner/</code></div>';
-        html += '<textarea class="form-control" id="promoHtmlContent" rows="8" style="font-family:monospace;font-size:0.85rem;">' + escapeHtml(currentPromoConfig.html_content || '') + '</textarea>';
+        html += '<label class="form-label fw-bold">Visueller Editor:</label>';
+        // WYSIWYG Toolbar
+        html += '<div class="wysiwyg-toolbar" style="display:flex;flex-wrap:wrap;gap:2px;padding:6px 8px;background:#f8f9fa;border:1px solid #dee2e6;border-bottom:none;border-radius:8px 8px 0 0;">';
+        html += '<button type="button" class="btn btn-sm btn-outline-secondary wysi-btn" data-cmd="bold" title="Fett"><i class="fa fa-bold"></i></button>';
+        html += '<button type="button" class="btn btn-sm btn-outline-secondary wysi-btn" data-cmd="italic" title="Kursiv"><i class="fa fa-italic"></i></button>';
+        html += '<button type="button" class="btn btn-sm btn-outline-secondary wysi-btn" data-cmd="underline" title="Unterstrichen"><i class="fa fa-underline"></i></button>';
+        html += '<button type="button" class="btn btn-sm btn-outline-secondary wysi-btn" data-cmd="strikeThrough" title="Durchgestrichen"><i class="fa fa-strikethrough"></i></button>';
+        html += '<span style="border-left:1px solid #ccc;margin:0 4px;"></span>';
+        html += '<button type="button" class="btn btn-sm btn-outline-secondary wysi-btn" data-cmd="justifyLeft" title="Links"><i class="fa fa-align-left"></i></button>';
+        html += '<button type="button" class="btn btn-sm btn-outline-secondary wysi-btn" data-cmd="justifyCenter" title="Zentriert"><i class="fa fa-align-center"></i></button>';
+        html += '<button type="button" class="btn btn-sm btn-outline-secondary wysi-btn" data-cmd="justifyRight" title="Rechts"><i class="fa fa-align-right"></i></button>';
+        html += '<span style="border-left:1px solid #ccc;margin:0 4px;"></span>';
+        html += '<select class="form-select form-select-sm wysi-select" id="wysiHeading" style="width:auto;min-width:100px;" title="Überschrift">';
+        html += '<option value="">Normal</option><option value="1">H1</option><option value="2">H2</option><option value="3">H3</option><option value="4">H4</option>';
+        html += '</select>';
+        html += '<select class="form-select form-select-sm wysi-select" id="wysiFontSize" style="width:auto;min-width:70px;" title="Schriftgröße">';
+        html += '<option value="">Größe</option><option value="1">Klein</option><option value="2">Normal</option><option value="3">Mittel</option><option value="4">Groß</option><option value="5">Sehr groß</option><option value="6">Riesig</option><option value="7">Maximum</option>';
+        html += '</select>';
+        html += '<span style="border-left:1px solid #ccc;margin:0 4px;"></span>';
+        html += '<label class="btn btn-sm btn-outline-secondary" title="Textfarbe" style="position:relative;overflow:hidden;"><i class="fa fa-font" style="color:#c00;"></i><input type="color" id="wysiFontColor" value="#000000" style="position:absolute;left:0;top:0;width:100%;height:100%;opacity:0;cursor:pointer;"></label>';
+        html += '<label class="btn btn-sm btn-outline-secondary" title="Hintergrundfarbe" style="position:relative;overflow:hidden;"><i class="fa fa-paint-brush"></i><input type="color" id="wysiBackColor" value="#ffff00" style="position:absolute;left:0;top:0;width:100%;height:100%;opacity:0;cursor:pointer;"></label>';
+        html += '<span style="border-left:1px solid #ccc;margin:0 4px;"></span>';
+        html += '<button type="button" class="btn btn-sm btn-outline-secondary wysi-btn" data-cmd="insertUnorderedList" title="Aufzählung"><i class="fa fa-list-ul"></i></button>';
+        html += '<button type="button" class="btn btn-sm btn-outline-secondary wysi-btn" data-cmd="insertOrderedList" title="Nummerierung"><i class="fa fa-list-ol"></i></button>';
+        html += '<button type="button" class="btn btn-sm btn-outline-secondary" id="wysiLinkBtn" title="Link einfügen"><i class="fa fa-link"></i></button>';
+        html += '<button type="button" class="btn btn-sm btn-outline-secondary wysi-btn" data-cmd="removeFormat" title="Formatierung entfernen"><i class="fa fa-eraser"></i></button>';
+        html += '<span style="border-left:1px solid #ccc;margin:0 4px;"></span>';
+        html += '<button type="button" class="btn btn-sm btn-outline-secondary" id="wysiImageBtn" title="Bild einfügen"><i class="fa fa-image"></i></button>';
+        html += '<button type="button" class="btn btn-sm btn-outline-warning" id="wysiToggleSource" title="HTML-Quellcode anzeigen/bearbeiten"><i class="fa fa-code"></i></button>';
+        html += '</div>';
+        // Editierbarer Bereich
+        html += '<div id="promoWysiwyg" contenteditable="true" style="border:1px solid #dee2e6;border-radius:0 0 8px 8px;padding:12px 15px;min-height:120px;max-height:300px;overflow-y:auto;background:#fff;font-size:0.95rem;line-height:1.5;outline:none;">' + (currentPromoConfig.html_content || '') + '</div>';
+        html += '<textarea class="form-control mt-2" id="promoHtmlContent" rows="6" style="font-family:monospace;font-size:0.8rem;display:none;">' + escapeHtml(currentPromoConfig.html_content || '') + '</textarea>';
         html += '</div>';
         html += '<div class="mb-3"><label class="form-label fw-bold">Vorschau:</label>';
         html += '<div class="promo-preview" id="promoHtmlPreview"></div></div>';
@@ -880,12 +910,131 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
 
       // Event-Listener für Typ-spezifische Aktionen
       if (type === 'html') {
+        var wysi = document.getElementById('promoWysiwyg');
         var ta = document.getElementById('promoHtmlContent');
         var prev = document.getElementById('promoHtmlPreview');
-        if (ta && prev) {
+        var sourceMode = false;
+
+        if (wysi && ta && prev) {
           prev.innerHTML = currentPromoConfig.html_content || '<span class="text-muted">Kein Content</span>';
+
+          // WYSIWYG → Vorschau + Textarea sync
+          wysi.addEventListener('input', function() {
+            if (!sourceMode) {
+              ta.value = wysi.innerHTML;
+              prev.innerHTML = wysi.innerHTML || '<span class="text-muted">Kein Content</span>';
+            }
+          });
+
+          // Toolbar-Buttons (execCommand)
+          document.querySelectorAll('.wysi-btn[data-cmd]').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+              e.preventDefault();
+              wysi.focus();
+              document.execCommand(this.dataset.cmd, false, null);
+              ta.value = wysi.innerHTML;
+              prev.innerHTML = wysi.innerHTML;
+            });
+          });
+
+          // Überschrift-Auswahl
+          var headingSel = document.getElementById('wysiHeading');
+          if (headingSel) headingSel.addEventListener('change', function() {
+            wysi.focus();
+            if (this.value) {
+              document.execCommand('formatBlock', false, 'H' + this.value);
+            } else {
+              document.execCommand('formatBlock', false, 'P');
+            }
+            ta.value = wysi.innerHTML;
+            prev.innerHTML = wysi.innerHTML;
+            this.value = '';
+          });
+
+          // Schriftgröße
+          var sizeSel = document.getElementById('wysiFontSize');
+          if (sizeSel) sizeSel.addEventListener('change', function() {
+            if (this.value) {
+              wysi.focus();
+              document.execCommand('fontSize', false, this.value);
+              ta.value = wysi.innerHTML;
+              prev.innerHTML = wysi.innerHTML;
+            }
+            this.value = '';
+          });
+
+          // Textfarbe
+          var fontColor = document.getElementById('wysiFontColor');
+          if (fontColor) fontColor.addEventListener('input', function() {
+            wysi.focus();
+            document.execCommand('foreColor', false, this.value);
+            ta.value = wysi.innerHTML;
+            prev.innerHTML = wysi.innerHTML;
+          });
+
+          // Hintergrundfarbe
+          var backColor = document.getElementById('wysiBackColor');
+          if (backColor) backColor.addEventListener('input', function() {
+            wysi.focus();
+            document.execCommand('hiliteColor', false, this.value);
+            ta.value = wysi.innerHTML;
+            prev.innerHTML = wysi.innerHTML;
+          });
+
+          // Link einfügen
+          var linkBtn = document.getElementById('wysiLinkBtn');
+          if (linkBtn) linkBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var url = prompt('Link-URL eingeben:', 'https://');
+            if (url) {
+              wysi.focus();
+              document.execCommand('createLink', false, url);
+              ta.value = wysi.innerHTML;
+              prev.innerHTML = wysi.innerHTML;
+            }
+          });
+
+          // Bild einfügen
+          var imgBtn = document.getElementById('wysiImageBtn');
+          if (imgBtn) imgBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var url = prompt('Bild-URL eingeben:', '/images/banner/');
+            if (url) {
+              wysi.focus();
+              document.execCommand('insertImage', false, url);
+              ta.value = wysi.innerHTML;
+              prev.innerHTML = wysi.innerHTML;
+            }
+          });
+
+          // Toggle HTML-Quellcode
+          var toggleBtn = document.getElementById('wysiToggleSource');
+          if (toggleBtn) toggleBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            sourceMode = !sourceMode;
+            if (sourceMode) {
+              // Wechsel zu Quellcode-Ansicht
+              ta.value = wysi.innerHTML;
+              ta.style.display = 'block';
+              wysi.style.display = 'none';
+              this.classList.remove('btn-outline-warning');
+              this.classList.add('btn-warning');
+            } else {
+              // Wechsel zurück zu WYSIWYG
+              wysi.innerHTML = ta.value;
+              wysi.style.display = 'block';
+              ta.style.display = 'none';
+              prev.innerHTML = ta.value || '<span class="text-muted">Kein Content</span>';
+              this.classList.remove('btn-warning');
+              this.classList.add('btn-outline-warning');
+            }
+          });
+
+          // Textarea → Vorschau sync (im Source-Modus)
           ta.addEventListener('input', function() {
-            prev.innerHTML = this.value || '<span class="text-muted">Kein Content</span>';
+            if (sourceMode) {
+              prev.innerHTML = this.value || '<span class="text-muted">Kein Content</span>';
+            }
           });
         }
       }
@@ -1000,7 +1149,14 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
       currentPromoConfig.promo_type = type;
 
       if (type === 'html') {
-        currentPromoConfig.html_content = (document.getElementById('promoHtmlContent') || {}).value || '';
+        // WYSIWYG: Wenn der visuelle Editor sichtbar ist, dessen innerHTML verwenden
+        var wysi = document.getElementById('promoWysiwyg');
+        var ta = document.getElementById('promoHtmlContent');
+        if (wysi && wysi.style.display !== 'none') {
+          currentPromoConfig.html_content = wysi.innerHTML || '';
+        } else if (ta) {
+          currentPromoConfig.html_content = ta.value || '';
+        }
       }
       if (type === 'banner') {
         currentPromoConfig.banner_id = parseInt((document.getElementById('promoBannerSelect') || {}).value) || 0;
