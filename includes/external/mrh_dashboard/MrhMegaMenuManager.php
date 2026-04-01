@@ -2,7 +2,7 @@
 /**
  * --------------------------------------------------------------
  * MrhMegaMenuManager
- * Version: 1.3.0
+ * Version: 1.4.0
  * --------------------------------------------------------------
  * Backend-Logik fuer den Mega-Menu Manager.
  * Liest Kategorien aus der modified eCommerce DB,
@@ -137,6 +137,39 @@ class MrhMegaMenuManager
         }
 
         return $categories;
+    }
+
+    /**
+     * Holt die SEO-URL fuer eine Kategorie aus der clean_seo_url Tabelle.
+     * Gibt die saubere URL zurueck (z.B. 'samen-shop/autoflowering-samen/')
+     * oder null wenn keine SEO-URL existiert.
+     *
+     * @param int $category_id Kategorie-ID
+     * @param int $language_id Sprach-ID (Default: 2 = Deutsch)
+     * @return string|null SEO-URL mit fuehrendem Slash oder null
+     */
+    public function getSeoUrl($category_id, $language_id = 2)
+    {
+        $query = "SELECT url_text FROM clean_seo_url
+                  WHERE id = " . (int)$category_id . "
+                    AND type = 'category'
+                    AND language_id = " . (int)$language_id . "
+                  LIMIT 1";
+        $result = xtc_db_fetch_array(xtc_db_query($query));
+
+        if ($result && !empty($result['url_text'])) {
+            $url = $result['url_text'];
+            // Fuehrenden Slash sicherstellen
+            if (substr($url, 0, 1) !== '/') {
+                $url = '/' . $url;
+            }
+            // Trailing Slash sicherstellen
+            if (substr($url, -1) !== '/') {
+                $url .= '/';
+            }
+            return $url;
+        }
+        return null;
     }
 
     /**
@@ -745,11 +778,26 @@ class MrhMegaMenuManager
                             $labels[$lcode] = $item['custom_label'] ? $item['custom_label'] : ($label_result['categories_name'] ?? '');
                         }
 
+                        // SEO-URL ermitteln: custom_url > clean_seo_url > cPath-Fallback
+                        $item_url = '';
+                        if (!empty($item['custom_url'])) {
+                            $item_url = $item['custom_url'];
+                        } else {
+                            // Versuche SEO-URL aus clean_seo_url Tabelle (aktive Sprache)
+                            $seo_url = $this->getSeoUrl($cat_id, $this->language_id);
+                            if ($seo_url) {
+                                $item_url = $seo_url;
+                            } else {
+                                // Fallback: cPath
+                                $item_url = 'index.php?cPath=' . $cpath;
+                            }
+                        }
+
                         $items[] = array(
                             'category_id' => $cat_id,
                             'labels'      => $labels,
                             'cpath'       => $cpath,
-                            'url'         => $item['custom_url'] ? $item['custom_url'] : 'index.php?cPath=' . $cpath,
+                            'url'         => $item_url,
                         );
                     }
 
