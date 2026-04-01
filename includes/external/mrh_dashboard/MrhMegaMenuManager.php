@@ -2,13 +2,14 @@
 /**
  * --------------------------------------------------------------
  * MrhMegaMenuManager
- * Version: 1.2.1
+ * Version: 1.3.0
  * --------------------------------------------------------------
  * Backend-Logik fuer den Mega-Menu Manager.
  * Liest Kategorien aus der modified eCommerce DB,
  * speichert/laedt die Spalten-Konfiguration (4 Sprachen: DE/EN/FR/ES),
  * verwaltet zusaetzliche Nav-Links mit MRH_-Sprachkonstanten,
  * bietet Sprachdatei-Editor fuer MRH_-Konstanten,
+ * verwaltet Promo-Konfiguration (HTML/Banner/Special/New) pro Kategorie,
  * generiert den Frontend-Cache (JSON).
  * --------------------------------------------------------------
  */
@@ -302,6 +303,211 @@ class MrhMegaMenuManager
     }
 
     // ============================================================
+    // Promo-Konfiguration
+    // ============================================================
+
+    /**
+     * Holt die Promo-Konfiguration fuer eine Hauptkategorie.
+     */
+    public function getPromoConfig($parent_category_id)
+    {
+        $query = 'SELECT * FROM `mrh_megamenu_promo`
+                  WHERE parent_category_id = ' . (int)$parent_category_id . '
+                  LIMIT 1';
+        $result = xtc_db_query($query);
+        $row = xtc_db_fetch_array($result);
+
+        if (!$row) return null;
+
+        return array(
+            'promo_type'   => $row['promo_type'],
+            'html_content' => $row['html_content'],
+            'banner_id'    => (int)$row['banner_id'],
+            'banner_group' => $row['banner_group'],
+            'max_items'    => (int)$row['max_items'],
+        );
+    }
+
+    /**
+     * Speichert die Promo-Konfiguration fuer eine Hauptkategorie.
+     */
+    public function savePromoConfig($parent_category_id, $promo_data)
+    {
+        try {
+            $parent_id = (int)$parent_category_id;
+            $now = date('Y-m-d H:i:s');
+
+            // Pruefen ob bereits ein Eintrag existiert
+            $check = xtc_db_query('SELECT id FROM `mrh_megamenu_promo` WHERE parent_category_id = ' . $parent_id);
+            $existing = xtc_db_fetch_array($check);
+
+            $type    = xtc_db_input($promo_data['promo_type'] ?? 'none');
+            $html    = xtc_db_input($promo_data['html_content'] ?? '');
+            $bid     = (int)($promo_data['banner_id'] ?? 0);
+            $bgroup  = xtc_db_input($promo_data['banner_group'] ?? '');
+            $max     = (int)($promo_data['max_items'] ?? 3);
+
+            if ($existing) {
+                xtc_db_query("UPDATE `mrh_megamenu_promo` SET
+                    promo_type = '" . $type . "',
+                    html_content = '" . $html . "',
+                    banner_id = " . $bid . ",
+                    banner_group = '" . $bgroup . "',
+                    max_items = " . $max . ",
+                    last_modified = '" . $now . "'
+                    WHERE parent_category_id = " . $parent_id);
+            } else {
+                xtc_db_query("INSERT INTO `mrh_megamenu_promo`
+                    (parent_category_id, promo_type, html_content, banner_id, banner_group, max_items, date_added, last_modified)
+                    VALUES (
+                        " . $parent_id . ",
+                        '" . $type . "',
+                        '" . $html . "',
+                        " . $bid . ",
+                        '" . $bgroup . "',
+                        " . $max . ",
+                        '" . $now . "',
+                        '" . $now . "'
+                    )");
+            }
+
+            return true;
+        } catch (Exception $e) {
+            error_log('MRH Dashboard - Promo Save Error: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Holt alle Banner-Gruppen.
+     */
+    public function getBannerGroups()
+    {
+        $groups = array();
+        $query = 'SELECT DISTINCT banners_group FROM banners WHERE status = 1 ORDER BY banners_group';
+        $result = xtc_db_query($query);
+        while ($row = xtc_db_fetch_array($result)) {
+            $groups[] = $row['banners_group'];
+        }
+        return $groups;
+    }
+
+    /**
+     * Holt alle Banner einer Gruppe.
+     */
+    public function getBannersByGroup($group)
+    {
+        $banners = array();
+        $query = 'SELECT banners_id, banners_title, banners_image, banners_url, banners_html_text
+                  FROM banners
+                  WHERE banners_group = "' . xtc_db_input($group) . '"
+                    AND status = 1
+                    AND (languages_id = 0 OR languages_id = ' . $this->language_id . ')
+                  ORDER BY banners_sort, banners_title';
+        $result = xtc_db_query($query);
+        while ($row = xtc_db_fetch_array($result)) {
+            $banners[] = array(
+                'id'        => (int)$row['banners_id'],
+                'title'     => $row['banners_title'],
+                'image'     => $row['banners_image'],
+                'url'       => $row['banners_url'],
+                'html_text' => $row['banners_html_text'],
+            );
+        }
+        return $banners;
+    }
+
+    /**
+     * Holt Banner-Daten anhand der ID.
+     */
+    public function getBannerById($banner_id)
+    {
+        $query = 'SELECT banners_id, banners_title, banners_image, banners_url, banners_html_text
+                  FROM banners WHERE banners_id = ' . (int)$banner_id . ' LIMIT 1';
+        $result = xtc_db_fetch_array(xtc_db_query($query));
+        if (!$result) return null;
+        return array(
+            'id'        => (int)$result['banners_id'],
+            'title'     => $result['banners_title'],
+            'image'     => $result['banners_image'],
+            'url'       => $result['banners_url'],
+            'html_text' => $result['banners_html_text'],
+        );
+    }
+
+    /**
+     * Holt Sonderangebote fuer eine Kategorie.
+     */
+    public function getSpecialProducts($parent_category_id, $max = 3)
+    {
+        $products = array();
+        $query = 'SELECT p.products_id, pd.products_name, p.products_price, p.products_image,
+                         s.specials_new_products_price, s.specials_old_products_price
+                  FROM specials s
+                  JOIN ' . TABLE_PRODUCTS . ' p ON s.products_id = p.products_id
+                  JOIN ' . TABLE_PRODUCTS_DESCRIPTION . ' pd ON p.products_id = pd.products_id
+                    AND pd.language_id = ' . $this->language_id . '
+                  JOIN ' . TABLE_PRODUCTS_TO_CATEGORIES . ' p2c ON p.products_id = p2c.products_id
+                  WHERE s.status = 1
+                    AND p.products_status = 1
+                    AND (s.expires_date > NOW() OR s.expires_date IS NULL OR s.expires_date = "0000-00-00 00:00:00")
+                    AND p2c.categories_id IN (
+                        SELECT categories_id FROM ' . TABLE_CATEGORIES . '
+                        WHERE parent_id = ' . (int)$parent_category_id . '
+                           OR categories_id = ' . (int)$parent_category_id . '
+                    )
+                  ORDER BY RAND()
+                  LIMIT ' . (int)$max;
+        $result = xtc_db_query($query);
+        while ($row = xtc_db_fetch_array($result)) {
+            $old_price = (float)$row['specials_old_products_price'];
+            $new_price = (float)$row['specials_new_products_price'];
+            $discount  = ($old_price > 0) ? round((1 - $new_price / $old_price) * 100) : 0;
+            $products[] = array(
+                'id'       => (int)$row['products_id'],
+                'name'     => $row['products_name'],
+                'image'    => $row['products_image'],
+                'old_price' => $old_price,
+                'new_price' => $new_price,
+                'discount'  => $discount,
+            );
+        }
+        return $products;
+    }
+
+    /**
+     * Holt die neuesten Produkte fuer eine Kategorie.
+     */
+    public function getNewProducts($parent_category_id, $max = 3)
+    {
+        $products = array();
+        $query = 'SELECT p.products_id, pd.products_name, p.products_price, p.products_image, p.products_date_added
+                  FROM ' . TABLE_PRODUCTS . ' p
+                  JOIN ' . TABLE_PRODUCTS_DESCRIPTION . ' pd ON p.products_id = pd.products_id
+                    AND pd.language_id = ' . $this->language_id . '
+                  JOIN ' . TABLE_PRODUCTS_TO_CATEGORIES . ' p2c ON p.products_id = p2c.products_id
+                  WHERE p.products_status = 1
+                    AND p2c.categories_id IN (
+                        SELECT categories_id FROM ' . TABLE_CATEGORIES . '
+                        WHERE parent_id = ' . (int)$parent_category_id . '
+                           OR categories_id = ' . (int)$parent_category_id . '
+                    )
+                  ORDER BY p.products_date_added DESC
+                  LIMIT ' . (int)$max;
+        $result = xtc_db_query($query);
+        while ($row = xtc_db_fetch_array($result)) {
+            $products[] = array(
+                'id'         => (int)$row['products_id'],
+                'name'       => $row['products_name'],
+                'image'      => $row['products_image'],
+                'price'      => (float)$row['products_price'],
+                'date_added' => $row['products_date_added'],
+            );
+        }
+        return $products;
+    }
+
+    // ============================================================
     // Nav-Links Verwaltung
     // ============================================================
 
@@ -560,11 +766,34 @@ class MrhMegaMenuManager
                 }
 
                 if (!empty($columns_raw)) {
-                    $data['categories'][] = array(
+                    // Promo-Config laden
+                    $promo_config = $this->getPromoConfig($parent_id);
+                    $promo_data = null;
+                    if ($promo_config && $promo_config['promo_type'] !== 'none') {
+                        $promo_data = array(
+                            'type' => $promo_config['promo_type'],
+                        );
+                        if ($promo_config['promo_type'] === 'html') {
+                            $promo_data['html_content'] = $promo_config['html_content'];
+                        } elseif ($promo_config['promo_type'] === 'banner') {
+                            $banner = $this->getBannerById($promo_config['banner_id']);
+                            if ($banner) {
+                                $promo_data['banner'] = $banner;
+                            }
+                        }
+                        // special und new werden dynamisch geladen (nicht gecacht)
+                        $promo_data['max_items'] = $promo_config['max_items'];
+                    }
+
+                    $cat_entry = array(
                         'parent_id'    => $parent_id,
                         'parent_names' => $names,
                         'columns'      => $columns_raw,
                     );
+                    if ($promo_data) {
+                        $cat_entry['promo'] = $promo_data;
+                    }
+                    $data['categories'][] = $cat_entry;
                 }
             }
 

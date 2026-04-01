@@ -1,6 +1,6 @@
 <?php
 /* -----------------------------------------------------------------------------------------
-   $Id: mrh_dashboard.php 1.2.0 2026-03-31 Mr. Hanf $
+   $Id: mrh_dashboard.php 1.3.0 2026-04-01 Mr. Hanf $
 
    MRH Dashboard - Admin-Seite
    https://mr-hanf.at
@@ -106,6 +106,64 @@ if (isset($_GET['ajax'])) {
     exit;
   }
 
+  // Promo-Config laden
+  if ($_GET['ajax'] === 'get_promo_config') {
+    $parent_id = (int)$_GET['parent_id'];
+    $config = $megaMenuManager ? $megaMenuManager->getPromoConfig($parent_id) : null;
+    echo json_encode(array('success' => true, 'promo' => $config));
+    exit;
+  }
+
+  // Promo-Config speichern
+  if ($_GET['ajax'] === 'save_promo_config') {
+    $input = json_decode(file_get_contents('php://input'), true);
+    $parent_id = (int)($input['parent_id'] ?? 0);
+    $promo_data = $input['promo'] ?? array();
+
+    $result = $megaMenuManager ? $megaMenuManager->savePromoConfig($parent_id, $promo_data) : false;
+
+    // Cache regenerieren
+    if ($result && $megaMenuManager) {
+      $megaMenuManager->regenerateCache();
+    }
+
+    echo json_encode(array('success' => $result));
+    exit;
+  }
+
+  // Banner-Gruppen laden
+  if ($_GET['ajax'] === 'get_banner_groups') {
+    $groups = $megaMenuManager ? $megaMenuManager->getBannerGroups() : array();
+    echo json_encode(array('success' => true, 'groups' => $groups));
+    exit;
+  }
+
+  // Banner einer Gruppe laden
+  if ($_GET['ajax'] === 'get_banners') {
+    $group = $_GET['group'] ?? '';
+    $banners = $megaMenuManager ? $megaMenuManager->getBannersByGroup($group) : array();
+    echo json_encode(array('success' => true, 'banners' => $banners));
+    exit;
+  }
+
+  // Special-Produkte laden (Vorschau)
+  if ($_GET['ajax'] === 'get_special_products') {
+    $parent_id = (int)$_GET['parent_id'];
+    $max = (int)($_GET['max'] ?? 3);
+    $products = $megaMenuManager ? $megaMenuManager->getSpecialProducts($parent_id, $max) : array();
+    echo json_encode(array('success' => true, 'products' => $products));
+    exit;
+  }
+
+  // Neue Produkte laden (Vorschau)
+  if ($_GET['ajax'] === 'get_new_products') {
+    $parent_id = (int)$_GET['parent_id'];
+    $max = (int)($_GET['max'] ?? 3);
+    $products = $megaMenuManager ? $megaMenuManager->getNewProducts($parent_id, $max) : array();
+    echo json_encode(array('success' => true, 'products' => $products));
+    exit;
+  }
+
   // Cache regenerieren
   if ($_GET['ajax'] === 'regenerate_cache') {
     $result = $megaMenuManager ? $megaMenuManager->regenerateCache() : false;
@@ -124,7 +182,7 @@ $navLinks = $megaMenuManager ? $megaMenuManager->getNavLinks() : array();
 
 // Sprachkonstanten
 $heading_title = defined('MRH_DASHBOARD_HEADING') ? MRH_DASHBOARD_HEADING : 'MRH Dashboard';
-$version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSION : '1.2.0';
+$version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSION : '1.3.0';
 ?>
 <!DOCTYPE html>
 <html>
@@ -161,6 +219,14 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
     .item-row { display: flex; align-items: center; gap: 8px; padding: 6px 8px; background: #fff; border: 1px solid #e9ecef; border-radius: 4px; margin-bottom: 4px; }
     .item-row .item-label { flex: 1; font-size: 0.9rem; }
     .item-row .btn-remove { color: #dc3545; cursor: pointer; border: none; background: none; }
+    .promo-config { border: 2px dashed #2d7a3a; border-radius: 10px; padding: 15px; margin-top: 15px; background: #f0faf2; }
+    .promo-config .promo-header { font-weight: 600; color: #2d7a3a; margin-bottom: 10px; }
+    .promo-preview { background: #fff; border: 1px solid #dee2e6; border-radius: 8px; padding: 12px; margin-top: 10px; min-height: 60px; }
+    .promo-preview img { max-width: 100%; max-height: 150px; border-radius: 4px; }
+    .promo-product-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid #eee; }
+    .promo-product-item:last-child { border-bottom: none; }
+    .promo-product-item .discount-badge { background: #dc3545; color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+    .promo-product-item .new-badge { background: #2d7a3a; color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -215,11 +281,12 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
             </div>
           </div>
 
-          <div class="col-md-9">
+              <div class="col-md-9">
             <div class="mrh-card">
               <div class="card-header d-flex justify-content-between align-items-center">
                 <span id="editorTitle"><i class="fa fa-hand-pointer-o"></i> Kategorie auswählen...</span>
                 <div>
+                  <button class="btn btn-outline-success btn-sm" id="btnPromoConfig" style="display:none;"><i class="fa fa-bullhorn"></i> Promo</button>
                   <button class="btn btn-primary btn-sm" id="btnAddColumn" style="display:none;"><i class="fa fa-plus"></i> Spalte</button>
                   <button class="btn btn-success btn-sm" id="btnSaveConfig" style="display:none;"><i class="fa fa-save"></i> Speichern</button>
                 </div>
@@ -397,6 +464,7 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
         document.getElementById('editorTitle').innerHTML = '<i class="fa fa-edit"></i> ' + this.dataset.name + ' <small class="text-muted">(ID: ' + currentParentId + ')</small>';
         document.getElementById('btnAddColumn').style.display = '';
         document.getElementById('btnSaveConfig').style.display = '';
+        document.getElementById('btnPromoConfig').style.display = '';
         loadConfig(currentParentId);
       });
     });
@@ -683,6 +751,265 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
         showToast(data.success ? 'Konstanten (' + currentLangCode.toUpperCase() + ') gespeichert!' : 'Fehler! Dateiberechtigungen prüfen.', data.success ? 'success' : 'error');
       });
     });
+
+    // ============================================================
+    // PROMO-KONFIGURATION
+    // ============================================================
+    var currentPromoConfig = { promo_type: 'none', html_content: '', banner_id: 0, banner_group: '', max_items: 3 };
+    var promoModalEl = null;
+    var promoModal = null;
+
+    document.getElementById('btnPromoConfig').addEventListener('click', function() {
+      if (!currentParentId) return;
+      if (!promoModalEl) {
+        promoModalEl = document.createElement('div');
+        promoModalEl.className = 'modal fade';
+        promoModalEl.id = 'promoModal';
+        promoModalEl.tabIndex = -1;
+        promoModalEl.innerHTML =
+          '<div class="modal-dialog modal-lg">' +
+          '<div class="modal-content">' +
+          '<div class="modal-header" style="background:#f0faf2;">' +
+          '<h5 class="modal-title"><i class="fa fa-bullhorn" style="color:#2d7a3a;"></i> Promo-Konfiguration</h5>' +
+          '<button type="button" class="btn-close" data-bs-dismiss="modal"></button>' +
+          '</div>' +
+          '<div class="modal-body" id="promoModalBody"></div>' +
+          '<div class="modal-footer">' +
+          '<button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Abbrechen</button>' +
+          '<button type="button" class="btn btn-success btn-sm" id="btnSavePromo"><i class="fa fa-save"></i> Promo speichern</button>' +
+          '</div>' +
+          '</div></div>';
+        document.body.appendChild(promoModalEl);
+        promoModal = new bootstrap.Modal(promoModalEl);
+
+        document.getElementById('btnSavePromo').addEventListener('click', function() {
+          syncPromoFromDOM();
+          ajax('save_promo_config', { _body: { parent_id: currentParentId, promo: currentPromoConfig } }, function(data) {
+            if (data.success) {
+              showToast('Promo gespeichert!', 'success');
+              promoModal.hide();
+            } else {
+              showToast('Fehler beim Speichern!', 'error');
+            }
+          });
+        });
+      }
+      // Promo-Config laden
+      ajax('get_promo_config', { parent_id: currentParentId }, function(data) {
+        currentPromoConfig = data.promo || { promo_type: 'none', html_content: '', banner_id: 0, banner_group: '', max_items: 3 };
+        renderPromoModal();
+        promoModal.show();
+      });
+    });
+
+    function renderPromoModal() {
+      var body = document.getElementById('promoModalBody');
+      var type = currentPromoConfig.promo_type || 'none';
+      var html = '';
+
+      html += '<div class="mb-3">';
+      html += '<label class="form-label fw-bold">Promo-Typ:</label>';
+      html += '<select class="form-select" id="promoTypeSelect">';
+      html += '<option value="none"' + (type === 'none' ? ' selected' : '') + '>Kein Promo</option>';
+      html += '<option value="html"' + (type === 'html' ? ' selected' : '') + '>HTML-Content (freier Editor)</option>';
+      html += '<option value="banner"' + (type === 'banner' ? ' selected' : '') + '>Banner (aus Bannermanager)</option>';
+      html += '<option value="special"' + (type === 'special' ? ' selected' : '') + '>Angebote (dynamisch)</option>';
+      html += '<option value="new"' + (type === 'new' ? ' selected' : '') + '>Neue Artikel (dynamisch)</option>';
+      html += '</select></div>';
+
+      html += '<div id="promoTypeContent"></div>';
+      html += '<div id="promoPreviewArea"></div>';
+
+      body.innerHTML = html;
+
+      document.getElementById('promoTypeSelect').addEventListener('change', function() {
+        currentPromoConfig.promo_type = this.value;
+        renderPromoTypeContent(this.value);
+      });
+
+      renderPromoTypeContent(type);
+    }
+
+    function renderPromoTypeContent(type) {
+      var container = document.getElementById('promoTypeContent');
+      var preview = document.getElementById('promoPreviewArea');
+      var html = '';
+
+      if (type === 'html') {
+        html += '<div class="mb-3">';
+        html += '<label class="form-label fw-bold">HTML-Content:</label>';
+        html += '<div class="alert alert-info small"><i class="fa fa-info-circle"></i> Verwende HTML + Bootstrap 4 Klassen. Bilder-Pfad: <code>/images/banner/</code></div>';
+        html += '<textarea class="form-control" id="promoHtmlContent" rows="8" style="font-family:monospace;font-size:0.85rem;">' + escapeHtml(currentPromoConfig.html_content || '') + '</textarea>';
+        html += '</div>';
+        html += '<div class="mb-3"><label class="form-label fw-bold">Vorschau:</label>';
+        html += '<div class="promo-preview" id="promoHtmlPreview"></div></div>';
+
+      } else if (type === 'banner') {
+        html += '<div class="row g-3">';
+        html += '<div class="col-md-6"><label class="form-label fw-bold">Banner-Gruppe:</label>';
+        html += '<select class="form-select" id="promoBannerGroup"><option value="">Laden...</option></select></div>';
+        html += '<div class="col-md-6"><label class="form-label fw-bold">Banner:</label>';
+        html += '<select class="form-select" id="promoBannerSelect"><option value="">Erst Gruppe wählen...</option></select></div>';
+        html += '</div>';
+        html += '<div class="mt-3"><label class="form-label fw-bold">Vorschau:</label>';
+        html += '<div class="promo-preview" id="promoBannerPreview">Kein Banner ausgewählt</div></div>';
+
+      } else if (type === 'special') {
+        html += '<div class="mb-3">';
+        html += '<label class="form-label fw-bold">Maximale Anzahl Produkte:</label>';
+        html += '<input type="number" class="form-control" id="promoMaxItems" value="' + (currentPromoConfig.max_items || 3) + '" min="1" max="10" style="max-width:100px;">';
+        html += '</div>';
+        html += '<div class="alert alert-info small"><i class="fa fa-info-circle"></i> Zeigt automatisch Sonderangebote mit Produktname und Rabatt-% aus dieser Kategorie.</div>';
+        html += '<button class="btn btn-outline-primary btn-sm" id="btnPreviewSpecials"><i class="fa fa-eye"></i> Vorschau laden</button>';
+        html += '<div class="promo-preview mt-2" id="promoSpecialPreview"></div>';
+
+      } else if (type === 'new') {
+        html += '<div class="mb-3">';
+        html += '<label class="form-label fw-bold">Maximale Anzahl Produkte:</label>';
+        html += '<input type="number" class="form-control" id="promoMaxItems" value="' + (currentPromoConfig.max_items || 3) + '" min="1" max="10" style="max-width:100px;">';
+        html += '</div>';
+        html += '<div class="alert alert-info small"><i class="fa fa-info-circle"></i> Zeigt automatisch die neuesten Produkte aus dieser Kategorie.</div>';
+        html += '<button class="btn btn-outline-primary btn-sm" id="btnPreviewNew"><i class="fa fa-eye"></i> Vorschau laden</button>';
+        html += '<div class="promo-preview mt-2" id="promoNewPreview"></div>';
+
+      } else {
+        html += '<div class="text-muted">Kein Promo-Feld wird angezeigt.</div>';
+      }
+
+      container.innerHTML = html;
+
+      // Event-Listener für Typ-spezifische Aktionen
+      if (type === 'html') {
+        var ta = document.getElementById('promoHtmlContent');
+        var prev = document.getElementById('promoHtmlPreview');
+        if (ta && prev) {
+          prev.innerHTML = currentPromoConfig.html_content || '<span class="text-muted">Kein Content</span>';
+          ta.addEventListener('input', function() {
+            prev.innerHTML = this.value || '<span class="text-muted">Kein Content</span>';
+          });
+        }
+      }
+
+      if (type === 'banner') {
+        loadBannerGroups();
+      }
+
+      if (type === 'special') {
+        var btn = document.getElementById('btnPreviewSpecials');
+        if (btn) btn.addEventListener('click', function() {
+          var max = parseInt((document.getElementById('promoMaxItems') || {}).value) || 3;
+          ajax('get_special_products', { parent_id: currentParentId, max: max }, function(data) {
+            renderProductPreview(data.products || [], 'promoSpecialPreview', 'special');
+          });
+        });
+      }
+
+      if (type === 'new') {
+        var btn = document.getElementById('btnPreviewNew');
+        if (btn) btn.addEventListener('click', function() {
+          var max = parseInt((document.getElementById('promoMaxItems') || {}).value) || 3;
+          ajax('get_new_products', { parent_id: currentParentId, max: max }, function(data) {
+            renderProductPreview(data.products || [], 'promoNewPreview', 'new');
+          });
+        });
+      }
+    }
+
+    function loadBannerGroups() {
+      ajax('get_banner_groups', {}, function(data) {
+        var sel = document.getElementById('promoBannerGroup');
+        if (!sel) return;
+        var html = '<option value="">Gruppe wählen...</option>';
+        (data.groups || []).forEach(function(g) {
+          html += '<option value="' + escapeHtml(g) + '"' + (g === currentPromoConfig.banner_group ? ' selected' : '') + '>' + escapeHtml(g) + '</option>';
+        });
+        sel.innerHTML = html;
+
+        sel.addEventListener('change', function() {
+          currentPromoConfig.banner_group = this.value;
+          if (this.value) loadBannersForGroup(this.value);
+        });
+
+        // Wenn bereits eine Gruppe gesetzt ist, Banner laden
+        if (currentPromoConfig.banner_group) {
+          loadBannersForGroup(currentPromoConfig.banner_group);
+        }
+      });
+    }
+
+    function loadBannersForGroup(group) {
+      ajax('get_banners', { group: group }, function(data) {
+        var sel = document.getElementById('promoBannerSelect');
+        if (!sel) return;
+        var html = '<option value="0">Banner wählen...</option>';
+        (data.banners || []).forEach(function(b) {
+          html += '<option value="' + b.id + '"' + (b.id === currentPromoConfig.banner_id ? ' selected' : '') + '>' + escapeHtml(b.title) + ' (ID: ' + b.id + ')</option>';
+        });
+        sel.innerHTML = html;
+
+        sel.addEventListener('change', function() {
+          currentPromoConfig.banner_id = parseInt(this.value);
+          // Vorschau aktualisieren
+          var banner = (data.banners || []).find(function(b) { return b.id === parseInt(sel.value); });
+          var prev = document.getElementById('promoBannerPreview');
+          if (prev && banner) {
+            if (banner.image) {
+              prev.innerHTML = '<img src="/' + banner.image + '" alt="' + escapeHtml(banner.title) + '" style="max-width:100%;max-height:200px;"><br><small class="text-muted">' + escapeHtml(banner.title) + '</small>';
+            } else if (banner.html_text) {
+              prev.innerHTML = banner.html_text;
+            } else {
+              prev.innerHTML = '<span class="text-muted">' + escapeHtml(banner.title) + ' (kein Bild)</span>';
+            }
+          } else if (prev) {
+            prev.innerHTML = '<span class="text-muted">Kein Banner ausgewählt</span>';
+          }
+        });
+
+        // Wenn bereits ein Banner gesetzt ist, Vorschau zeigen
+        if (currentPromoConfig.banner_id) {
+          sel.dispatchEvent(new Event('change'));
+        }
+      });
+    }
+
+    function renderProductPreview(products, containerId, type) {
+      var container = document.getElementById(containerId);
+      if (!container) return;
+      if (!products.length) {
+        container.innerHTML = '<span class="text-muted">Keine Produkte gefunden.</span>';
+        return;
+      }
+      var html = '';
+      products.forEach(function(p) {
+        html += '<div class="promo-product-item">';
+        if (p.image) html += '<img src="/images/product_images/thumbnail_images/' + p.image + '" alt="" style="width:40px;height:40px;object-fit:cover;border-radius:4px;">';
+        html += '<span style="flex:1;">' + escapeHtml(p.name) + '</span>';
+        if (type === 'special' && p.discount) {
+          html += '<span class="discount-badge">-' + p.discount + '%</span>';
+        }
+        if (type === 'new') {
+          html += '<span class="new-badge">NEU</span>';
+        }
+        html += '</div>';
+      });
+      container.innerHTML = html;
+    }
+
+    function syncPromoFromDOM() {
+      var type = (document.getElementById('promoTypeSelect') || {}).value || 'none';
+      currentPromoConfig.promo_type = type;
+
+      if (type === 'html') {
+        currentPromoConfig.html_content = (document.getElementById('promoHtmlContent') || {}).value || '';
+      }
+      if (type === 'banner') {
+        currentPromoConfig.banner_id = parseInt((document.getElementById('promoBannerSelect') || {}).value) || 0;
+        currentPromoConfig.banner_group = (document.getElementById('promoBannerGroup') || {}).value || '';
+      }
+      if (type === 'special' || type === 'new') {
+        currentPromoConfig.max_items = parseInt((document.getElementById('promoMaxItems') || {}).value) || 3;
+      }
+    }
 
     // Tab-Events
     document.querySelectorAll('a[data-bs-toggle="tab"]').forEach(function(tab) {

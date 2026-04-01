@@ -14,7 +14,7 @@ defined('_VALID_XTC') or die('Direct Access to this location is not allowed.');
 
 class mrh_dashboard {
 
-  const VERSION = '1.2.0';
+  const VERSION = '1.3.0';
 
   var $code;
   var $title;
@@ -156,8 +156,26 @@ class mrh_dashboard {
       PRIMARY KEY (id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
+    // Promo-Tabelle
+    xtc_db_query("CREATE TABLE IF NOT EXISTS mrh_megamenu_promo (
+      id INT(11) NOT NULL AUTO_INCREMENT,
+      parent_category_id INT(11) NOT NULL,
+      promo_type ENUM('none','html','banner','special','new') NOT NULL DEFAULT 'none',
+      html_content TEXT DEFAULT NULL,
+      banner_id INT(11) NOT NULL DEFAULT 0,
+      banner_group VARCHAR(64) NOT NULL DEFAULT '',
+      max_items TINYINT(3) NOT NULL DEFAULT 3,
+      date_added DATETIME NOT NULL,
+      last_modified DATETIME NOT NULL,
+      PRIMARY KEY (id),
+      UNIQUE KEY parent_cat (parent_category_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
     // Migration: ES-Spalte hinzufuegen falls noch nicht vorhanden
     $this->_migrateAddES();
+
+    // Migration: Promo-Tabelle hinzufuegen falls noch nicht vorhanden
+    $this->_migrateAddPromo();
   }
 
   function _migrateAddES() {
@@ -360,9 +378,32 @@ class mrh_dashboard {
       )");
   }
 
+  function _migrateAddPromo() {
+    // Pruefen ob mrh_megamenu_promo Tabelle existiert
+    $check = xtc_db_query("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES
+                           WHERE TABLE_SCHEMA = DATABASE()
+                             AND TABLE_NAME = 'mrh_megamenu_promo'");
+    if (!xtc_db_fetch_array($check)) {
+      xtc_db_query("CREATE TABLE IF NOT EXISTS mrh_megamenu_promo (
+        id INT(11) NOT NULL AUTO_INCREMENT,
+        parent_category_id INT(11) NOT NULL,
+        promo_type ENUM('none','html','banner','special','new') NOT NULL DEFAULT 'none',
+        html_content TEXT DEFAULT NULL,
+        banner_id INT(11) NOT NULL DEFAULT 0,
+        banner_group VARCHAR(64) NOT NULL DEFAULT '',
+        max_items TINYINT(3) NOT NULL DEFAULT 3,
+        date_added DATETIME NOT NULL,
+        last_modified DATETIME NOT NULL,
+        PRIMARY KEY (id),
+        UNIQUE KEY parent_cat (parent_category_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    }
+  }
+
   function _dropTables() {
     xtc_db_query("DROP TABLE IF EXISTS mrh_megamenu_items");
     xtc_db_query("DROP TABLE IF EXISTS mrh_megamenu_config");
     xtc_db_query("DROP TABLE IF EXISTS mrh_megamenu_navlinks");
+    xtc_db_query("DROP TABLE IF EXISTS mrh_megamenu_promo");
   }
 }

@@ -10,6 +10,7 @@
    geladen und bei COMPRESS_JAVASCRIPT komprimiert.
 
    v1.2.0: Config wird direkt per PHP eingelesen (kein Timing-Problem)
+   v1.3.0: Promo-Daten (HTML/Banner/Special/New) pro Kategorie
    ============================================================ */
 
 // ---- Mega-Menu Config direkt einlesen (statt separate JS-Datei) ----
@@ -70,11 +71,52 @@ if (file_exists($_mrh_cache_file)) {
             } elseif (isset($_mrh_entry['parent_names']['de'])) {
                 $_mrh_pname = $_mrh_entry['parent_names']['de'];
             }
-            $_mrh_output[] = array(
+            // Promo-Daten aufbereiten
+            $_mrh_promo_out = null;
+            if (isset($_mrh_entry['promo']) && is_array($_mrh_entry['promo'])) {
+                $_mrh_p = $_mrh_entry['promo'];
+                $_mrh_promo_out = array('type' => $_mrh_p['type']);
+                if ($_mrh_p['type'] === 'html') {
+                    $_mrh_promo_out['html'] = isset($_mrh_p['html_content']) ? $_mrh_p['html_content'] : '';
+                } elseif ($_mrh_p['type'] === 'banner' && isset($_mrh_p['banner'])) {
+                    $_mrh_promo_out['banner'] = array(
+                        'title' => isset($_mrh_p['banner']['title']) ? $_mrh_p['banner']['title'] : '',
+                        'image' => isset($_mrh_p['banner']['image']) ? $_mrh_p['banner']['image'] : '',
+                        'url'   => isset($_mrh_p['banner']['url']) ? $_mrh_p['banner']['url'] : '',
+                        'html_text' => isset($_mrh_p['banner']['html_text']) ? $_mrh_p['banner']['html_text'] : '',
+                    );
+                } elseif ($_mrh_p['type'] === 'special') {
+                    // Dynamisch: Sonderangebote laden
+                    $_mrh_max = isset($_mrh_p['max_items']) ? (int)$_mrh_p['max_items'] : 3;
+                    $_mrh_parent_id = (int)$_mrh_entry['parent_id'];
+                    $_mrh_specials = array();
+                    if (class_exists('MrhMegaMenuManager')) {
+                        $_mrh_mgr_tmp = new MrhMegaMenuManager();
+                        $_mrh_specials = $_mrh_mgr_tmp->getSpecialProducts($_mrh_parent_id, $_mrh_max);
+                    }
+                    $_mrh_promo_out['products'] = $_mrh_specials;
+                } elseif ($_mrh_p['type'] === 'new') {
+                    // Dynamisch: Neue Produkte laden
+                    $_mrh_max = isset($_mrh_p['max_items']) ? (int)$_mrh_p['max_items'] : 3;
+                    $_mrh_parent_id = (int)$_mrh_entry['parent_id'];
+                    $_mrh_new_prods = array();
+                    if (class_exists('MrhMegaMenuManager')) {
+                        $_mrh_mgr_tmp = new MrhMegaMenuManager();
+                        $_mrh_new_prods = $_mrh_mgr_tmp->getNewProducts($_mrh_parent_id, $_mrh_max);
+                    }
+                    $_mrh_promo_out['products'] = $_mrh_new_prods;
+                }
+            }
+
+            $_mrh_cat_out = array(
                 'parent_id'   => (int)$_mrh_entry['parent_id'],
                 'parent_name' => $_mrh_pname,
                 'columns'     => $_mrh_cols_out,
             );
+            if ($_mrh_promo_out) {
+                $_mrh_cat_out['promo'] = $_mrh_promo_out;
+            }
+            $_mrh_output[] = $_mrh_cat_out;
         }
         $_mrh_megamenu_js = json_encode($_mrh_output, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
@@ -708,8 +750,8 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
         this._buildFallback(subUl, parentHref, parentText, content);
       }
 
-      // Promo-Spalte hinzufügen
-      this._appendPromoColumn(content);
+      // Promo-Spalte hinzufügen (Dashboard-Config hat Vorrang)
+      this._appendPromoColumn(content, dashConfig);
 
       dropdown.appendChild(content);
       return dropdown;
@@ -864,9 +906,85 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
     },
 
     /**
-     * Promo-Spalte aus data-Attributen des #mrhMegaPromoData Elements
+     * Promo-Spalte: Dashboard-Config (v1.3.0) oder Fallback aus #mrhMegaPromoData
+     * Modi: html, banner, special, new, oder Fallback (data-Attribute)
      */
-    _appendPromoColumn: function(content) {
+    _appendPromoColumn: function(content, dashConfig) {
+      var promo = document.createElement('div');
+      promo.className = 'mrh-mega-promo';
+
+      // v1.3.0: Dashboard-Promo-Config prüfen
+      if (dashConfig && dashConfig.promo && dashConfig.promo.type && dashConfig.promo.type !== 'none') {
+        var p = dashConfig.promo;
+
+        if (p.type === 'html' && p.html) {
+          // HTML-Content direkt rendern
+          promo.innerHTML = '<div class="mrh-mega-promo-inner">' + p.html + '</div>';
+
+        } else if (p.type === 'banner' && p.banner) {
+          // Banner-Bild oder HTML
+          var inner = '<div class="mrh-mega-promo-inner">';
+          if (p.banner.html_text) {
+            inner += p.banner.html_text;
+          } else if (p.banner.image) {
+            var imgUrl = '/' + p.banner.image;
+            inner += '<a href="' + (p.banner.url || '#') + '">';
+            inner += '<img src="' + imgUrl + '" alt="' + (p.banner.title || '') + '" style="max-width:100%;border-radius:8px;">';
+            inner += '</a>';
+          }
+          inner += '</div>';
+          promo.innerHTML = inner;
+
+        } else if (p.type === 'special' && p.products && p.products.length) {
+          // Sonderangebote mit Rabatt
+          var inner = '<div class="mrh-mega-promo-inner">';
+          inner += '<div class="mrh-mega-promo-title"><i class="fa-solid fa-percent"></i> Angebote</div>';
+          for (var i = 0; i < p.products.length; i++) {
+            var prod = p.products[i];
+            inner += '<div class="mrh-promo-product">';
+            if (prod.image) {
+              inner += '<img src="/images/product_images/thumbnail_images/' + prod.image + '" alt="" class="mrh-promo-product-img">';
+            }
+            inner += '<div class="mrh-promo-product-info">';
+            inner += '<span class="mrh-promo-product-name">' + prod.name + '</span>';
+            if (prod.discount) {
+              inner += '<span class="mrh-promo-discount">-' + prod.discount + '%</span>';
+            }
+            inner += '</div></div>';
+          }
+          inner += '<a href="/angebote/" class="mrh-mega-promo-btn">Alle Angebote</a>';
+          inner += '</div>';
+          promo.innerHTML = inner;
+
+        } else if (p.type === 'new' && p.products && p.products.length) {
+          // Neue Artikel
+          var inner = '<div class="mrh-mega-promo-inner">';
+          inner += '<div class="mrh-mega-promo-title"><i class="fa-solid fa-sparkles"></i> Neu eingetroffen</div>';
+          for (var i = 0; i < p.products.length; i++) {
+            var prod = p.products[i];
+            inner += '<div class="mrh-promo-product">';
+            if (prod.image) {
+              inner += '<img src="/images/product_images/thumbnail_images/' + prod.image + '" alt="" class="mrh-promo-product-img">';
+            }
+            inner += '<div class="mrh-promo-product-info">';
+            inner += '<span class="mrh-promo-product-name">' + prod.name + '</span>';
+            inner += '<span class="mrh-promo-new-badge">NEU</span>';
+            inner += '</div></div>';
+          }
+          inner += '<a href="/neue-artikel/" class="mrh-mega-promo-btn">Alle neuen Artikel</a>';
+          inner += '</div>';
+          promo.innerHTML = inner;
+
+        } else {
+          // Promo-Typ gesetzt aber keine Daten → kein Promo anzeigen
+          return;
+        }
+
+        content.appendChild(promo);
+        return;
+      }
+
+      // Fallback: data-Attribute aus #mrhMegaPromoData (alte Methode)
       var promoData = document.querySelector('#mrhMegaPromoData');
       if (!promoData) return;
 
@@ -877,8 +995,6 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
       var link = promoData.dataset.link || '/angebote/';
       var button = promoData.dataset.button || 'Jetzt sparen';
 
-      var promo = document.createElement('div');
-      promo.className = 'mrh-mega-promo';
       promo.innerHTML =
         '<div class="mrh-mega-promo-inner">' +
           '<div class="mrh-mega-promo-title">' +
@@ -1223,7 +1339,7 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
 
     // Debug-Info in Konsole (nur Entwicklung)
     if (window.location.hostname === 'localhost' || window.location.search.indexOf('debug=1') > -1) {
-      console.log('[MRH Core] v1.1.0 initialized', {
+      console.log('[MRH Core] v1.3.0 initialized', {
         modules: Object.keys(MRH).filter(function(k) { return typeof MRH[k] === 'object' && MRH[k].init; }),
         shippingThreshold: MRH.ShippingBar.threshold,
         dashboardConfig: window.MRH_MEGAMENU_CONFIG ? 'loaded (' + window.MRH_MEGAMENU_CONFIG.length + ' entries)' : 'not available'
@@ -1240,3 +1356,13 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
 
 })();
 </script>
+<style>
+/* v1.3.0 Promo-Produkt Styles */
+.mrh-promo-product { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); }
+.mrh-promo-product:last-of-type { border-bottom: none; }
+.mrh-promo-product-img { width: 40px; height: 40px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
+.mrh-promo-product-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.mrh-promo-product-name { font-size: 0.8rem; line-height: 1.2; color: #333; font-weight: 500; }
+.mrh-promo-discount { display: inline-block; background: #dc3545; color: #fff; padding: 1px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; width: fit-content; }
+.mrh-promo-new-badge { display: inline-block; background: #2d7a3a; color: #fff; padding: 1px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; width: fit-content; }
+</style>
