@@ -2,7 +2,7 @@
 /**
  * --------------------------------------------------------------
  * MrhMegaMenuManager
- * Version: 1.5.0
+ * Version: 1.6.0
  * --------------------------------------------------------------
  * Backend-Logik fuer den Mega-Menu Manager.
  * Liest Kategorien aus der modified eCommerce DB,
@@ -10,6 +10,8 @@
  * verwaltet zusaetzliche Nav-Links mit MRH_-Sprachkonstanten,
  * bietet Sprachdatei-Editor fuer MRH_-Konstanten,
  * verwaltet Promo-Konfiguration (HTML/Banner/Special/New) pro Kategorie,
+ * verwaltet Mobile-Promo-Konfiguration (HTML/Banner) fuer Mobile-Menue,
+ * verwaltet Mobile-Icons pro Hauptkategorie,
  * generiert den Frontend-Cache (JSON).
  * --------------------------------------------------------------
  */
@@ -872,6 +874,304 @@ class MrhMegaMenuManager
                     );
                 }
             }
+
+            // JSON-Datei schreiben
+            $dir = dirname($this->cache_file);
+            if (!is_dir($dir)) {
+                @mkdir($dir, 0755, true);
+            }
+
+            $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+            return (bool)file_put_contents($this->cache_file, $json);
+
+        } catch (Exception $e) {
+            error_log('MRH Dashboard - Cache Regeneration Error: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // ============================================================
+    // Mobile-Promo Verwaltung
+    // ============================================================
+
+    /**
+     * Holt alle Mobile-Promo-Eintraege.
+     */
+    public function getMobilePromos()
+    {
+        $promos = array();
+        $query = 'SELECT * FROM `mrh_megamenu_mobile_promo` ORDER BY sort_order';
+        $result = xtc_db_query($query);
+        while ($row = xtc_db_fetch_array($result)) {
+            $promos[] = array(
+                'id'             => (int)$row['id'],
+                'promo_type'     => $row['promo_type'],
+                'promo_position' => $row['promo_position'],
+                'html_content'   => $row['html_content'],
+                'banner_id'      => (int)$row['banner_id'],
+                'banner_group'   => $row['banner_group'],
+                'is_active'      => (int)$row['is_active'],
+                'sort_order'     => (int)$row['sort_order'],
+            );
+        }
+        return $promos;
+    }
+
+    /**
+     * Speichert Mobile-Promo-Eintraege (loescht alle und fuegt neu ein).
+     */
+    public function saveMobilePromos($promos)
+    {
+        try {
+            xtc_db_query("DELETE FROM `mrh_megamenu_mobile_promo`");
+            $now = date('Y-m-d H:i:s');
+
+            foreach ($promos as $idx => $promo) {
+                $type     = xtc_db_input($promo['promo_type'] ?? 'none');
+                $position = xtc_db_input($promo['promo_position'] ?? 'bottom');
+                $html     = xtc_db_input($promo['html_content'] ?? '');
+                $bid      = (int)($promo['banner_id'] ?? 0);
+                $bgroup   = xtc_db_input($promo['banner_group'] ?? '');
+                $active   = isset($promo['is_active']) ? (int)$promo['is_active'] : 1;
+
+                xtc_db_query("INSERT INTO `mrh_megamenu_mobile_promo`
+                    (promo_type, promo_position, html_content, banner_id, banner_group, is_active, sort_order, date_added, last_modified)
+                    VALUES (
+                        '" . $type . "',
+                        '" . $position . "',
+                        '" . $html . "',
+                        " . $bid . ",
+                        '" . $bgroup . "',
+                        " . $active . ",
+                        " . (int)$idx . ",
+                        '" . $now . "',
+                        '" . $now . "'
+                    )");
+            }
+            return true;
+        } catch (Exception $e) {
+            error_log('MRH Dashboard - Mobile Promo Save Error: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // ============================================================
+    // Mobile-Icons Verwaltung
+    // ============================================================
+
+    /**
+     * Holt alle Mobile-Icons (category_id => icon_class Mapping).
+     */
+    public function getMobileIcons()
+    {
+        $icons = array();
+        $query = 'SELECT * FROM `mrh_megamenu_mobile_icons` ORDER BY category_id';
+        $result = xtc_db_query($query);
+        while ($row = xtc_db_fetch_array($result)) {
+            $icons[(int)$row['category_id']] = $row['icon_class'];
+        }
+        return $icons;
+    }
+
+    /**
+     * Speichert Mobile-Icons (Array von category_id => icon_class).
+     */
+    public function saveMobileIcons($icons)
+    {
+        try {
+            xtc_db_query("DELETE FROM `mrh_megamenu_mobile_icons`");
+            $now = date('Y-m-d H:i:s');
+
+            foreach ($icons as $cat_id => $icon_class) {
+                if (empty($icon_class)) continue;
+                xtc_db_query("INSERT INTO `mrh_megamenu_mobile_icons`
+                    (category_id, icon_class, date_added, last_modified)
+                    VALUES (
+                        " . (int)$cat_id . ",
+                        '" . xtc_db_input($icon_class) . "',
+                        '" . $now . "',
+                        '" . $now . "'
+                    )");
+            }
+            return true;
+        } catch (Exception $e) {
+            error_log('MRH Dashboard - Mobile Icons Save Error: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // ============================================================
+    // Cache-Generierung (erweitert um Mobile-Daten)
+    // ============================================================
+
+    /**
+     * Generiert die JSON-Cache-Datei fuer den Frontend-Output.
+     * Enthaelt alle 4 Sprachen + Nav-Links + Mobile-Promo + Mobile-Icons.
+     */
+    public function regenerateCache()
+    {
+        try {
+            $data = array(
+                'categories'    => array(),
+                'navlinks'      => array(),
+                'mobile_promos' => array(),
+                'mobile_icons'  => array(),
+            );
+
+            // === Mega-Menu Kategorien ===
+            $query = 'SELECT DISTINCT parent_category_id FROM `mrh_megamenu_config` ORDER BY parent_category_id';
+            $result = xtc_db_query($query);
+
+            while ($row = xtc_db_fetch_array($result)) {
+                $parent_id = (int)$row['parent_category_id'];
+
+                // Kategoriename in allen Sprachen holen
+                $names = array();
+                foreach ($this->lang_map as $lid => $lcode) {
+                    $name_query = 'SELECT cd.categories_name FROM ' . TABLE_CATEGORIES_DESCRIPTION . ' cd
+                                   WHERE cd.categories_id = ' . $parent_id . '
+                                     AND cd.language_id = ' . (int)$lid;
+                    $name_result = xtc_db_fetch_array(xtc_db_query($name_query));
+                    $names[$lcode] = $name_result['categories_name'] ?? '';
+                }
+
+                // Spalten laden
+                $columns_raw = array();
+                $col_query = 'SELECT * FROM `mrh_megamenu_config`
+                              WHERE parent_category_id = ' . $parent_id . '
+                              ORDER BY column_index';
+                $col_result = xtc_db_query($col_query);
+
+                while ($col = xtc_db_fetch_array($col_result)) {
+                    $items = array();
+                    $items_query = 'SELECT mi.category_id, mi.custom_label, mi.custom_url
+                                    FROM `mrh_megamenu_items` mi
+                                    WHERE mi.config_id = ' . (int)$col['id'] . '
+                                      AND mi.is_active = 1
+                                    ORDER BY mi.sort_order';
+                    $items_result = xtc_db_query($items_query);
+
+                    while ($item = xtc_db_fetch_array($items_result)) {
+                        $cat_id = (int)$item['category_id'];
+                        $cpath  = $this->buildCPath($cat_id);
+
+                        $labels = array();
+                        foreach ($this->lang_map as $lid => $lcode) {
+                            $label_query = 'SELECT categories_name FROM ' . TABLE_CATEGORIES_DESCRIPTION . '
+                                            WHERE categories_id = ' . $cat_id . '
+                                              AND language_id = ' . (int)$lid;
+                            $label_result = xtc_db_fetch_array(xtc_db_query($label_query));
+                            $db_label = $label_result['categories_name'] ?? '';
+
+                            if ($lcode === 'de' && !empty($item['custom_label'])) {
+                                $labels[$lcode] = $item['custom_label'];
+                            } else {
+                                $labels[$lcode] = $db_label;
+                            }
+                        }
+
+                        $urls = array();
+                        if (!empty($item['custom_url'])) {
+                            foreach ($this->lang_map as $lid => $lcode) {
+                                $urls[$lcode] = $item['custom_url'];
+                            }
+                        } else {
+                            foreach ($this->lang_map as $lid => $lcode) {
+                                $seo_url = $this->getSeoUrl($cat_id, $lid);
+                                if ($seo_url) {
+                                    $urls[$lcode] = $seo_url;
+                                } else {
+                                    $urls[$lcode] = 'index.php?cPath=' . $cpath;
+                                }
+                            }
+                        }
+
+                        $items[] = array(
+                            'category_id' => $cat_id,
+                            'labels'      => $labels,
+                            'cpath'       => $cpath,
+                            'urls'        => $urls,
+                            'url'         => $urls['de'] ?? ('index.php?cPath=' . $cpath),
+                        );
+                    }
+
+                    $columns_raw[] = array(
+                        'titles' => array(
+                            'de' => $col['column_title_de'],
+                            'en' => $col['column_title_en'],
+                            'fr' => $col['column_title_fr'],
+                            'es' => $col['column_title_es'] ?? '',
+                        ),
+                        'icon'  => $col['column_icon'],
+                        'items' => $items,
+                    );
+                }
+
+                if (!empty($columns_raw)) {
+                    // Promo-Config laden
+                    $promo_config = $this->getPromoConfig($parent_id);
+                    $promo_data = null;
+                    if ($promo_config && $promo_config['promo_type'] !== 'none') {
+                        $promo_data = array(
+                            'type' => $promo_config['promo_type'],
+                        );
+                        if ($promo_config['promo_type'] === 'html') {
+                            $promo_data['html_content'] = $promo_config['html_content'];
+                        } elseif ($promo_config['promo_type'] === 'banner') {
+                            $banner = $this->getBannerById($promo_config['banner_id']);
+                            if ($banner) {
+                                $promo_data['banner'] = $banner;
+                            }
+                        }
+                        $promo_data['max_items'] = $promo_config['max_items'];
+                    }
+
+                    $cat_entry = array(
+                        'parent_id'    => $parent_id,
+                        'parent_names' => $names,
+                        'columns'      => $columns_raw,
+                    );
+                    if ($promo_data) {
+                        $cat_entry['promo'] = $promo_data;
+                    }
+                    $data['categories'][] = $cat_entry;
+                }
+            }
+
+            // === Nav-Links ===
+            $navlinks = $this->getNavLinks();
+            foreach ($navlinks as $link) {
+                if ($link['is_active']) {
+                    $data['navlinks'][] = array(
+                        'url'       => $link['url'],
+                        'name'      => $link['name'],
+                        'icon'      => $link['icon'],
+                        'is_active' => 1,
+                    );
+                }
+            }
+
+            // === Mobile-Promos ===
+            $mobile_promos = $this->getMobilePromos();
+            foreach ($mobile_promos as $mp) {
+                if (!$mp['is_active']) continue;
+                $mp_out = array(
+                    'promo_type'     => $mp['promo_type'],
+                    'promo_position' => $mp['promo_position'],
+                );
+                if ($mp['promo_type'] === 'html') {
+                    $mp_out['html_content'] = $mp['html_content'];
+                } elseif ($mp['promo_type'] === 'banner') {
+                    $banner = $this->getBannerById($mp['banner_id']);
+                    if ($banner) {
+                        $mp_out['banner'] = $banner;
+                    }
+                }
+                $data['mobile_promos'][] = $mp_out;
+            }
+
+            // === Mobile-Icons ===
+            $data['mobile_icons'] = $this->getMobileIcons();
 
             // JSON-Datei schreiben
             $dir = dirname($this->cache_file);

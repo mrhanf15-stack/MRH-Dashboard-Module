@@ -1,6 +1,6 @@
 <?php
 /* -----------------------------------------------------------------------------------------
-   $Id: mrh_dashboard.php 1.3.0 2026-04-01 Mr. Hanf $
+   $Id: mrh_dashboard.php 1.4.0 2026-04-01 Mr. Hanf $
 
    MRH Dashboard - Admin-Seite
    https://mr-hanf.at
@@ -171,6 +171,40 @@ if (isset($_GET['ajax'])) {
     exit;
   }
 
+  // Mobile-Promos laden
+  if ($_GET['ajax'] === 'get_mobile_promos') {
+    $promos = $megaMenuManager ? $megaMenuManager->getMobilePromos() : array();
+    echo json_encode(array('success' => true, 'promos' => $promos));
+    exit;
+  }
+
+  // Mobile-Promos speichern
+  if ($_GET['ajax'] === 'save_mobile_promos') {
+    $input = json_decode(file_get_contents('php://input'), true);
+    $promos = $input['promos'] ?? array();
+    $result = $megaMenuManager ? $megaMenuManager->saveMobilePromos($promos) : false;
+    if ($result && $megaMenuManager) { $megaMenuManager->regenerateCache(); }
+    echo json_encode(array('success' => $result));
+    exit;
+  }
+
+  // Mobile-Icons laden
+  if ($_GET['ajax'] === 'get_mobile_icons') {
+    $icons = $megaMenuManager ? $megaMenuManager->getMobileIcons() : array();
+    echo json_encode(array('success' => true, 'icons' => $icons));
+    exit;
+  }
+
+  // Mobile-Icons speichern
+  if ($_GET['ajax'] === 'save_mobile_icons') {
+    $input = json_decode(file_get_contents('php://input'), true);
+    $icons = $input['icons'] ?? array();
+    $result = $megaMenuManager ? $megaMenuManager->saveMobileIcons($icons) : false;
+    if ($result && $megaMenuManager) { $megaMenuManager->regenerateCache(); }
+    echo json_encode(array('success' => $result));
+    exit;
+  }
+
   echo json_encode(array('success' => false, 'error' => 'Unknown action'));
   exit;
 }
@@ -227,6 +261,10 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
     .promo-product-item:last-child { border-bottom: none; }
     .promo-product-item .discount-badge { background: #dc3545; color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
     .promo-product-item .new-badge { background: #2d7a3a; color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+    .mobile-icon-row { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; padding: 8px 12px; background: #f8f9fa; border-radius: 6px; }
+    .mobile-promo-card { border: 1px solid #dee2e6; border-radius: 8px; padding: 15px; margin-bottom: 12px; background: #fafbfc; }
+    .mobile-promo-card .promo-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .mobile-promo-card .promo-card-header h6 { margin: 0; font-size: 0.9rem; }
   </style>
 </head>
 <body>
@@ -246,6 +284,7 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
       <li class="nav-item"><a class="nav-link active" id="megamenu-tab" data-bs-toggle="tab" href="#megamenu" role="tab"><i class="fa-solid fa-bars"></i> Mega-Menü</a></li>
       <li class="nav-item"><a class="nav-link" id="navlinks-tab" data-bs-toggle="tab" href="#navlinks" role="tab"><i class="fa-solid fa-link"></i> Nav-Links</a></li>
       <li class="nav-item"><a class="nav-link" id="langeditor-tab" data-bs-toggle="tab" href="#langeditor" role="tab"><i class="fa-solid fa-language"></i> Sprachdatei-Editor</a></li>
+      <li class="nav-item"><a class="nav-link" id="mobilemenu-tab" data-bs-toggle="tab" href="#mobilemenu" role="tab"><i class="fa-solid fa-mobile-screen"></i> Mobile Menü</a></li>
     </ul>
 
     <div class="tab-content">
@@ -348,6 +387,62 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
               </div>
             </div>
             <div id="langConstantsList"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: Mobile Menü -->
+      <div class="tab-pane fade" id="mobilemenu" role="tabpanel">
+        <div class="row">
+          <!-- Linke Spalte: Mobile-Icons -->
+          <div class="col-md-6">
+            <div class="mrh-card">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fa-solid fa-icons"></i> Kategorie-Icons (Mobile Menü)</span>
+                <button class="btn btn-success btn-sm" id="btnSaveMobileIcons"><i class="fa-solid fa-floppy-disk"></i> Speichern</button>
+              </div>
+              <div class="card-body">
+                <div class="alert alert-info small mb-3">
+                  <i class="fa-solid fa-circle-info"></i>
+                  Weise jeder Hauptkategorie ein <strong>Font Awesome 6 Icon</strong> zu.
+                  Diese Icons werden im <strong>Mobile Offcanvas-Menü</strong> vor dem Kategorienamen angezeigt.
+                </div>
+                <div id="mobileIconsList">
+                  <?php foreach ($mainCategories as $cat): ?>
+                    <div class="mobile-icon-row" data-cat-id="<?php echo (int)$cat['categories_id']; ?>">
+                      <div class="input-group input-group-sm" style="width:160px;flex-shrink:0;">
+                        <span class="input-group-text"><span class="fa-solid fa-question" id="mobileIconPreview_<?php echo (int)$cat['categories_id']; ?>"></span></span>
+                        <input type="text" class="form-control" id="mobileIcon_<?php echo (int)$cat['categories_id']; ?>" readonly placeholder="Icon wählen...">
+                        <button class="btn btn-outline-secondary" type="button" onclick="openIconPickerForMobile(<?php echo (int)$cat['categories_id']; ?>)"><i class="fa-solid fa-table-cells"></i></button>
+                      </div>
+                      <span class="flex-grow-1 fw-medium"><?php echo htmlspecialchars($cat['categories_name']); ?></span>
+                      <small class="text-muted">ID: <?php echo (int)$cat['categories_id']; ?></small>
+                    </div>
+                  <?php endforeach; ?>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Rechte Spalte: Mobile-Promos -->
+          <div class="col-md-6">
+            <div class="mrh-card">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fa-solid fa-bullhorn"></i> Mobile Promo/Banner</span>
+                <div>
+                  <button class="btn btn-primary btn-sm" id="btnAddMobilePromo"><i class="fa-solid fa-plus"></i> Promo</button>
+                  <button class="btn btn-success btn-sm" id="btnSaveMobilePromos"><i class="fa-solid fa-floppy-disk"></i> Speichern</button>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="alert alert-info small mb-3">
+                  <i class="fa-solid fa-circle-info"></i>
+                  Füge <strong>Banner oder HTML-Werbung</strong> zum Mobile Menü hinzu.
+                  Wähle die Position: <strong>Oben</strong> (über der Navigation) oder <strong>Unten</strong> (unter der Navigation).
+                </div>
+                <div id="mobilePromosList"></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1197,11 +1292,205 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
       }
     }
 
+    // ============================================================
+    // MOBILE MENÜ
+    // ============================================================
+    var currentMobilePromos = [];
+
+    window.openIconPickerForMobile = function(catId) {
+      iconPickerCallback = function(icon) {
+        var inp = document.getElementById('mobileIcon_' + catId);
+        var prev = document.getElementById('mobileIconPreview_' + catId);
+        if (inp) inp.value = icon;
+        if (prev) prev.className = iconDisplayClass(icon);
+      };
+      selectedIcon = (document.getElementById('mobileIcon_' + catId) || {}).value || '';
+      currentIconStyle = 'solid';
+      document.querySelectorAll('[data-icon-style]').forEach(function(b) { b.classList.remove('active'); });
+      var solidBtn = document.querySelector('[data-icon-style="solid"]'); if (solidBtn) solidBtn.classList.add('active');
+      renderIconGrid(); if (!iconModal) iconModal = new bootstrap.Modal(document.getElementById('iconPickerModal')); iconModal.show();
+    };
+
+    function loadMobileIcons() {
+      ajax('get_mobile_icons', {}, function(data) {
+        var icons = data.icons || {};
+        for (var catId in icons) {
+          var inp = document.getElementById('mobileIcon_' + catId);
+          var prev = document.getElementById('mobileIconPreview_' + catId);
+          if (inp) inp.value = icons[catId];
+          if (prev) prev.className = iconDisplayClass(icons[catId]);
+        }
+      });
+    }
+
+    document.getElementById('btnSaveMobileIcons').addEventListener('click', function() {
+      var icons = {};
+      document.querySelectorAll('.mobile-icon-row').forEach(function(row) {
+        var catId = row.dataset.catId;
+        var inp = document.getElementById('mobileIcon_' + catId);
+        if (inp && inp.value) icons[catId] = inp.value;
+      });
+      ajax('save_mobile_icons', { _body: { icons: icons } }, function(data) {
+        showToast(data.success ? 'Mobile-Icons gespeichert!' : 'Fehler!', data.success ? 'success' : 'error');
+      });
+    });
+
+    function loadMobilePromos() {
+      ajax('get_mobile_promos', {}, function(data) {
+        currentMobilePromos = data.promos || [];
+        renderMobilePromos();
+      });
+    }
+
+    function renderMobilePromos() {
+      var c = document.getElementById('mobilePromosList'), html = '';
+      if (currentMobilePromos.length === 0) {
+        c.innerHTML = '<div class="text-center text-muted py-3">Keine Mobile-Promos. Klicke "Promo" um zu beginnen.</div>';
+        return;
+      }
+      currentMobilePromos.forEach(function(promo, idx) {
+        html += '<div class="mobile-promo-card" data-index="' + idx + '">';
+        html += '<div class="promo-card-header"><h6><i class="fa-solid fa-bullhorn" style="color:#2d7a3a;"></i> Promo ' + (idx + 1) + '</h6>';
+        html += '<button class="btn btn-outline-danger btn-sm" onclick="removeMobilePromo(' + idx + ')"><i class="fa-solid fa-trash"></i></button></div>';
+
+        // Typ
+        html += '<div class="row g-2 mb-2">';
+        html += '<div class="col-md-4"><label class="form-label small fw-bold">Typ:</label>';
+        html += '<select class="form-select form-select-sm" id="mobilePromoType_' + idx + '">';
+        html += '<option value="none"' + (promo.promo_type === 'none' ? ' selected' : '') + '>Kein Promo</option>';
+        html += '<option value="html"' + (promo.promo_type === 'html' ? ' selected' : '') + '>HTML-Content</option>';
+        html += '<option value="banner"' + (promo.promo_type === 'banner' ? ' selected' : '') + '>Banner</option>';
+        html += '</select></div>';
+
+        // Position
+        html += '<div class="col-md-4"><label class="form-label small fw-bold">Position:</label>';
+        html += '<select class="form-select form-select-sm" id="mobilePromoPos_' + idx + '">';
+        html += '<option value="top"' + (promo.promo_position === 'top' ? ' selected' : '') + '>Über Navigation</option>';
+        html += '<option value="bottom"' + (promo.promo_position === 'bottom' ? ' selected' : '') + '>Unter Navigation</option>';
+        html += '</select></div>';
+
+        // Aktiv
+        html += '<div class="col-md-4"><label class="form-label small fw-bold">Aktiv:</label>';
+        html += '<div class="form-check form-switch mt-1"><input class="form-check-input" type="checkbox" id="mobilePromoActive_' + idx + '"' + (promo.is_active ? ' checked' : '') + '></div></div>';
+        html += '</div>';
+
+        // HTML-Content
+        if (promo.promo_type === 'html') {
+          html += '<div class="mb-2"><label class="form-label small fw-bold">HTML-Content:</label>';
+          html += '<textarea class="form-control form-control-sm" rows="4" id="mobilePromoHtml_' + idx + '">' + escapeHtml(promo.html_content || '') + '</textarea></div>';
+        }
+
+        // Banner
+        if (promo.promo_type === 'banner') {
+          html += '<div class="mb-2"><label class="form-label small fw-bold">Banner-Gruppe:</label>';
+          html += '<select class="form-select form-select-sm" id="mobilePromoBannerGroup_' + idx + '"><option value="">Gruppe wählen...</option></select></div>';
+          html += '<div class="mb-2"><label class="form-label small fw-bold">Banner:</label>';
+          html += '<select class="form-select form-select-sm" id="mobilePromoBannerSelect_' + idx + '"><option value="0">Banner wählen...</option></select></div>';
+          html += '<div id="mobilePromoBannerPreview_' + idx + '" class="promo-preview"><span class="text-muted">Kein Banner ausgewählt</span></div>';
+        }
+
+        html += '</div>';
+      });
+      c.innerHTML = html;
+
+      // Banner-Gruppen laden für Banner-Promos
+      currentMobilePromos.forEach(function(promo, idx) {
+        if (promo.promo_type === 'banner') {
+          loadMobileBannerGroups(idx, promo.banner_group, promo.banner_id);
+        }
+        // Typ-Änderung
+        var typeSel = document.getElementById('mobilePromoType_' + idx);
+        if (typeSel) typeSel.addEventListener('change', function() {
+          syncMobilePromosFromDOM();
+          currentMobilePromos[idx].promo_type = this.value;
+          renderMobilePromos();
+        });
+      });
+    }
+
+    function loadMobileBannerGroups(idx, selectedGroup, selectedBannerId) {
+      ajax('get_banner_groups', {}, function(data) {
+        var sel = document.getElementById('mobilePromoBannerGroup_' + idx);
+        if (!sel) return;
+        var html = '<option value="">Gruppe wählen...</option>';
+        (data.groups || []).forEach(function(g) {
+          html += '<option value="' + escapeHtml(g) + '"' + (g === selectedGroup ? ' selected' : '') + '>' + escapeHtml(g) + '</option>';
+        });
+        sel.innerHTML = html;
+        sel.addEventListener('change', function() {
+          if (this.value) loadMobileBanners(idx, this.value, selectedBannerId);
+        });
+        if (selectedGroup) loadMobileBanners(idx, selectedGroup, selectedBannerId);
+      });
+    }
+
+    function loadMobileBanners(idx, group, selectedBannerId) {
+      ajax('get_banners', { group: group }, function(data) {
+        var sel = document.getElementById('mobilePromoBannerSelect_' + idx);
+        if (!sel) return;
+        var html = '<option value="0">Banner wählen...</option>';
+        (data.banners || []).forEach(function(b) {
+          html += '<option value="' + b.id + '"' + (b.id === selectedBannerId ? ' selected' : '') + '>' + escapeHtml(b.title) + ' (ID: ' + b.id + ')</option>';
+        });
+        sel.innerHTML = html;
+        sel.addEventListener('change', function() {
+          var banner = (data.banners || []).find(function(b) { return b.id === parseInt(sel.value); });
+          var prev = document.getElementById('mobilePromoBannerPreview_' + idx);
+          if (prev && banner && banner.image) {
+            prev.innerHTML = '<img src="/' + banner.image + '" alt="' + escapeHtml(banner.title) + '" style="max-width:100%;max-height:120px;"><br><small class="text-muted">' + escapeHtml(banner.title) + '</small>';
+          } else if (prev) {
+            prev.innerHTML = '<span class="text-muted">Kein Banner ausgewählt</span>';
+          }
+        });
+        if (selectedBannerId) sel.dispatchEvent(new Event('change'));
+      });
+    }
+
+    document.getElementById('btnAddMobilePromo').addEventListener('click', function() {
+      syncMobilePromosFromDOM();
+      currentMobilePromos.push({ promo_type: 'html', promo_position: 'bottom', html_content: '', banner_id: 0, banner_group: '', is_active: 1 });
+      renderMobilePromos();
+    });
+
+    window.removeMobilePromo = function(idx) {
+      if (confirm('Promo ' + (idx+1) + ' entfernen?')) {
+        syncMobilePromosFromDOM();
+        currentMobilePromos.splice(idx, 1);
+        renderMobilePromos();
+      }
+    };
+
+    function syncMobilePromosFromDOM() {
+      currentMobilePromos.forEach(function(promo, idx) {
+        var typeSel = document.getElementById('mobilePromoType_' + idx);
+        var posSel = document.getElementById('mobilePromoPos_' + idx);
+        var activeCb = document.getElementById('mobilePromoActive_' + idx);
+        var htmlTa = document.getElementById('mobilePromoHtml_' + idx);
+        var bannerGroup = document.getElementById('mobilePromoBannerGroup_' + idx);
+        var bannerSel = document.getElementById('mobilePromoBannerSelect_' + idx);
+
+        if (typeSel) promo.promo_type = typeSel.value;
+        if (posSel) promo.promo_position = posSel.value;
+        if (activeCb) promo.is_active = activeCb.checked ? 1 : 0;
+        if (htmlTa) promo.html_content = htmlTa.value;
+        if (bannerGroup) promo.banner_group = bannerGroup.value;
+        if (bannerSel) promo.banner_id = parseInt(bannerSel.value) || 0;
+      });
+    }
+
+    document.getElementById('btnSaveMobilePromos').addEventListener('click', function() {
+      syncMobilePromosFromDOM();
+      ajax('save_mobile_promos', { _body: { promos: currentMobilePromos } }, function(data) {
+        showToast(data.success ? 'Mobile-Promos gespeichert!' : 'Fehler!', data.success ? 'success' : 'error');
+      });
+    });
+
     // Tab-Events
     document.querySelectorAll('a[data-bs-toggle="tab"]').forEach(function(tab) {
       tab.addEventListener('shown.bs.tab', function(e) {
         if (e.target.id === 'navlinks-tab') loadNavLinks();
         if (e.target.id === 'langeditor-tab') loadLangConstants('de');
+        if (e.target.id === 'mobilemenu-tab') { loadMobileIcons(); loadMobilePromos(); }
       });
     });
 

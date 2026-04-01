@@ -14,7 +14,7 @@ defined('_VALID_XTC') or die('Direct Access to this location is not allowed.');
 
 class mrh_dashboard {
 
-  const VERSION = '1.3.0';
+  const VERSION = '1.4.0';
 
   var $code;
   var $title;
@@ -176,6 +176,9 @@ class mrh_dashboard {
 
     // Migration: Promo-Tabelle hinzufuegen falls noch nicht vorhanden
     $this->_migrateAddPromo();
+
+    // Migration: Mobile-Promo + Mobile-Icons Tabellen
+    $this->_migrateAddMobilePromo();
   }
 
   function _migrateAddES() {
@@ -400,10 +403,50 @@ class mrh_dashboard {
     }
   }
 
+  function _migrateAddMobilePromo() {
+    // Pruefen ob mrh_megamenu_mobile_promo Tabelle existiert
+    $check = xtc_db_query("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES
+                           WHERE TABLE_SCHEMA = DATABASE()
+                             AND TABLE_NAME = 'mrh_megamenu_mobile_promo'");
+    if (!xtc_db_fetch_array($check)) {
+      xtc_db_query("CREATE TABLE IF NOT EXISTS mrh_megamenu_mobile_promo (
+        id INT(11) NOT NULL AUTO_INCREMENT,
+        promo_type ENUM('none','html','banner') NOT NULL DEFAULT 'none',
+        promo_position ENUM('top','bottom') NOT NULL DEFAULT 'bottom',
+        html_content TEXT DEFAULT NULL,
+        banner_id INT(11) NOT NULL DEFAULT 0,
+        banner_group VARCHAR(64) NOT NULL DEFAULT '',
+        is_active TINYINT(1) NOT NULL DEFAULT 1,
+        sort_order INT(11) NOT NULL DEFAULT 0,
+        date_added DATETIME NOT NULL,
+        last_modified DATETIME NOT NULL,
+        PRIMARY KEY (id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    }
+
+    // Pruefen ob mrh_megamenu_mobile_icons Tabelle existiert
+    $check2 = xtc_db_query("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES
+                            WHERE TABLE_SCHEMA = DATABASE()
+                              AND TABLE_NAME = 'mrh_megamenu_mobile_icons'");
+    if (!xtc_db_fetch_array($check2)) {
+      xtc_db_query("CREATE TABLE IF NOT EXISTS mrh_megamenu_mobile_icons (
+        id INT(11) NOT NULL AUTO_INCREMENT,
+        category_id INT(11) NOT NULL,
+        icon_class VARCHAR(128) NOT NULL DEFAULT '',
+        date_added DATETIME NOT NULL,
+        last_modified DATETIME NOT NULL,
+        PRIMARY KEY (id),
+        UNIQUE KEY cat_id (category_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    }
+  }
+
   function _dropTables() {
     xtc_db_query("DROP TABLE IF EXISTS mrh_megamenu_items");
     xtc_db_query("DROP TABLE IF EXISTS mrh_megamenu_config");
     xtc_db_query("DROP TABLE IF EXISTS mrh_megamenu_navlinks");
     xtc_db_query("DROP TABLE IF EXISTS mrh_megamenu_promo");
+    xtc_db_query("DROP TABLE IF EXISTS mrh_megamenu_mobile_promo");
+    xtc_db_query("DROP TABLE IF EXISTS mrh_megamenu_mobile_icons");
   }
 }

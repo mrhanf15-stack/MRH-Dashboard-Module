@@ -122,19 +122,54 @@ if (file_exists($_mrh_cache_file)) {
         $_mrh_megamenu_js = json_encode($_mrh_output, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 }
+
+// ---- Mobile-Menu Config (Icons + Promos) ----
+$_mrh_mobile_config_js = '';
+if (is_array($_mrh_cache) && !empty($_mrh_cache)) {
+    $_mrh_mobile = array(
+        'icons'  => isset($_mrh_cache['mobile_icons']) ? $_mrh_cache['mobile_icons'] : array(),
+        'promos' => array(),
+    );
+    if (isset($_mrh_cache['mobile_promos']) && is_array($_mrh_cache['mobile_promos'])) {
+        foreach ($_mrh_cache['mobile_promos'] as $_mp) {
+            $_mp_out = array(
+                'type'     => $_mp['promo_type'],
+                'position' => $_mp['promo_position'],
+            );
+            if ($_mp['promo_type'] === 'html') {
+                $_mp_out['html'] = isset($_mp['html_content']) ? $_mp['html_content'] : '';
+            } elseif ($_mp['promo_type'] === 'banner' && isset($_mp['banner'])) {
+                $_mp_out['banner'] = array(
+                    'title'     => isset($_mp['banner']['title']) ? $_mp['banner']['title'] : '',
+                    'image'     => isset($_mp['banner']['image']) ? $_mp['banner']['image'] : '',
+                    'url'       => isset($_mp['banner']['url']) ? $_mp['banner']['url'] : '',
+                    'html_text' => isset($_mp['banner']['html_text']) ? $_mp['banner']['html_text'] : '',
+                );
+            }
+            $_mrh_mobile['promos'][] = $_mp_out;
+        }
+    }
+    $_mrh_mobile_config_js = json_encode($_mrh_mobile, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+}
 ?>
 <script>
 <?php if ($_mrh_megamenu_js): ?>
 /* MRH Mega-Menu Config (inline, v1.2.0) */
 window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
 <?php endif; ?>
+<?php if ($_mrh_mobile_config_js): ?>
+/* MRH Mobile-Menu Config (inline, v1.8.0) */
+window.MRH_MOBILE_CONFIG = <?php echo $_mrh_mobile_config_js; ?>;
+<?php endif; ?>
 /* ----------------------------------------------------------
-     MRH 2026 Core – v1.5.0
+     MRH 2026 Core – v1.8.0
      Vanilla JS – kein jQuery!
      v1.1.0: Bugfix getDashboardConfig + buildDropdown + _buildFromDashboardConfig
      v1.4.0: FA6 Pro Icon-Normalisierung (Brands vs Solid Auto-Detect)
      v1.5.0: Upgrade auf Font Awesome 7 Pro (7.2.0) – 587 Brands-Icons
      v1.6.0: Vanilla JS Offcanvas Mobile-Menü (ersetzt jQuery mmenu)
+     v1.7.0: Hamburger-Button Styling (gleich wie andere Header-Icons)
+     v1.8.0: Mobile-Menü Redesign mit Icons + Promo-Bereiche
      ============================================================ */
 (function() {
   'use strict';
@@ -1336,6 +1371,11 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
     _buildPanel: function(sourceNav) {
       var self = this;
 
+      // Mobile Config laden
+      var mobileConfig = window.MRH_MOBILE_CONFIG || { icons: {}, promos: [] };
+      var mobileIcons = mobileConfig.icons || {};
+      var mobilePromos = mobileConfig.promos || [];
+
       // Overlay (Backdrop)
       this.overlay = document.createElement('div');
       this.overlay.className = 'mrh-mobile-overlay';
@@ -1347,17 +1387,47 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
       this.panel.setAttribute('aria-label', 'Mobile Navigation');
       this.panel.setAttribute('role', 'dialog');
 
-      // Panel Header
+      // Panel Header mit Logo/Branding
       var header = document.createElement('div');
       header.className = 'mrh-mobile-header';
-      header.innerHTML = '<span class="mrh-mobile-title">Menu</span>' +
+      header.innerHTML = '<span class="mrh-mobile-title"><i class="fa-solid fa-cannabis"></i> Mr. Hanf</span>' +
                           '<button class="mrh-mobile-close" aria-label="Men\u00fc schlie\u00dfen">' +
                           '<i class="fa-solid fa-xmark"></i></button>';
       this.panel.appendChild(header);
 
+      // Suchleiste im Mobile-Menü
+      var searchRow = document.createElement('div');
+      searchRow.className = 'mrh-mobile-search';
+      var searchForm = document.querySelector('#search form');
+      if (searchForm) {
+        var searchAction = searchForm.getAttribute('action') || '/advanced_search_result.php';
+        searchRow.innerHTML = '<form action="' + searchAction + '" method="get" class="mrh-mobile-search-form">' +
+          '<input type="text" name="keywords" placeholder="Suchen..." class="mrh-mobile-search-input">' +
+          '<button type="submit" class="mrh-mobile-search-btn"><i class="fa-solid fa-magnifying-glass"></i></button>' +
+          '</form>';
+      } else {
+        searchRow.innerHTML = '<form action="/advanced_search_result.php" method="get" class="mrh-mobile-search-form">' +
+          '<input type="text" name="keywords" placeholder="Suchen..." class="mrh-mobile-search-input">' +
+          '<button type="submit" class="mrh-mobile-search-btn"><i class="fa-solid fa-magnifying-glass"></i></button>' +
+          '</form>';
+      }
+      this.panel.appendChild(searchRow);
+
       // Panel Body (scrollbar)
       var body = document.createElement('div');
       body.className = 'mrh-mobile-body';
+
+      // === Promo-Bereich OBEN ===
+      var topPromos = mobilePromos.filter(function(p) { return p.position === 'top'; });
+      if (topPromos.length > 0) {
+        var topPromoArea = document.createElement('div');
+        topPromoArea.className = 'mrh-mobile-promo mrh-mobile-promo-top';
+        topPromos.forEach(function(promo) {
+          var promoEl = self._buildPromoElement(promo);
+          if (promoEl) topPromoArea.appendChild(promoEl);
+        });
+        body.appendChild(topPromoArea);
+      }
 
       // CatNavi Elemente auslesen und als Offcanvas-Liste aufbauen
       var catItems = sourceNav.querySelectorAll(':scope > ul.CatNavi > li.level1');
@@ -1377,13 +1447,32 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
         var hasSubmenu = li.classList.contains('hassubmenu');
         var subUl = li.querySelector(':scope > ul');
 
+        // Kategorie-ID aus dem Link oder der Klasse extrahieren
+        var catId = '';
+        var catIdMatch = (link.getAttribute('href') || '').match(/cPath[=_](\d+)/);
+        if (catIdMatch) catId = catIdMatch[1];
+        // Fallback: data-cat-id oder class
+        if (!catId && li.dataset && li.dataset.catId) catId = li.dataset.catId;
+        if (!catId) {
+          var classMatch = li.className.match(/cat_(\d+)/);
+          if (classMatch) catId = classMatch[1];
+        }
+
         var navItem = document.createElement('li');
         navItem.className = 'mrh-mobile-item' + (hasSubmenu ? ' has-children' : '');
 
         var navLink = document.createElement('a');
         navLink.href = href;
         navLink.className = 'mrh-mobile-link';
-        navLink.textContent = text;
+
+        // Icon hinzufügen (aus Dashboard-Config)
+        var iconClass = mobileIcons[catId] || '';
+        if (iconClass) {
+          iconClass = _normalizeFA6(iconClass);
+          navLink.innerHTML = '<span class="mrh-mobile-icon"><i class="' + iconClass + '"></i></span>' + self._escHtml(text);
+        } else {
+          navLink.textContent = text;
+        }
 
         if (hasSubmenu && subUl) {
           // Toggle-Button für Unterkategorien
@@ -1486,11 +1575,80 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
       });
 
       body.appendChild(navList);
+
+      // === Konto-Bereich ===
+      var accountSection = document.createElement('div');
+      accountSection.className = 'mrh-mobile-account';
+      accountSection.innerHTML = '<div class="mrh-mobile-account-title"><i class="fa-solid fa-user"></i> Mein Konto</div>' +
+        '<div class="mrh-mobile-account-links">' +
+        '<a href="/login.php" class="mrh-mobile-account-link"><i class="fa-solid fa-right-to-bracket"></i> Anmelden</a>' +
+        '<a href="/create_account.php" class="mrh-mobile-account-link"><i class="fa-solid fa-user-plus"></i> Registrieren</a>' +
+        '</div>';
+      body.appendChild(accountSection);
+
+      // === Promo-Bereich UNTEN ===
+      var bottomPromos = mobilePromos.filter(function(p) { return p.position === 'bottom'; });
+      if (bottomPromos.length > 0) {
+        var bottomPromoArea = document.createElement('div');
+        bottomPromoArea.className = 'mrh-mobile-promo mrh-mobile-promo-bottom';
+        bottomPromos.forEach(function(promo) {
+          var promoEl = self._buildPromoElement(promo);
+          if (promoEl) bottomPromoArea.appendChild(promoEl);
+        });
+        body.appendChild(bottomPromoArea);
+      }
+
+      // === Footer-Info ===
+      var footerInfo = document.createElement('div');
+      footerInfo.className = 'mrh-mobile-footer';
+      footerInfo.innerHTML = '<div class="mrh-mobile-footer-item"><i class="fa-solid fa-phone"></i> +43 660 1234567</div>' +
+        '<div class="mrh-mobile-footer-item"><i class="fa-solid fa-truck-fast"></i> Versand: Österreich</div>';
+      body.appendChild(footerInfo);
+
       this.panel.appendChild(body);
       document.body.appendChild(this.panel);
 
       // Original #mobiles_menu verstecken (wird nicht mehr gebraucht)
       sourceNav.style.display = 'none';
+    },
+
+    /**
+     * Baut ein Promo-Element (HTML oder Banner)
+     */
+    _buildPromoElement: function(promo) {
+      var el = document.createElement('div');
+      el.className = 'mrh-mobile-promo-item';
+
+      if (promo.type === 'html' && promo.html) {
+        el.innerHTML = promo.html;
+      } else if (promo.type === 'banner' && promo.banner) {
+        var b = promo.banner;
+        var inner = '';
+        if (b.image) {
+          inner = '<a href="' + (b.url || '#') + '" class="mrh-mobile-promo-banner">';
+          inner += '<img src="/' + b.image + '" alt="' + this._escHtml(b.title || '') + '" loading="lazy">';
+          inner += '</a>';
+        } else if (b.html_text) {
+          inner = b.html_text;
+        } else {
+          return null;
+        }
+        el.innerHTML = inner;
+      } else {
+        return null;
+      }
+
+      return el;
+    },
+
+    /**
+     * HTML-Escape Hilfsfunktion
+     */
+    _escHtml: function(str) {
+      if (!str) return '';
+      var div = document.createElement('div');
+      div.appendChild(document.createTextNode(str));
+      return div.innerHTML;
     },
 
     _bindEvents: function() {
@@ -1689,7 +1847,7 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
 
     // Debug-Info in Konsole (nur Entwicklung)
     if (window.location.hostname === 'localhost' || window.location.search.indexOf('debug=1') > -1) {
-      console.log('[MRH Core] v1.6.0 initialized (Vanilla Offcanvas Mobile Menu)', {
+      console.log('[MRH Core] v1.8.0 initialized (Mobile Menu Redesign + Icons + Promo)', {
         modules: Object.keys(MRH).filter(function(k) { return typeof MRH[k] === 'object' && MRH[k].init; }),
         shippingThreshold: MRH.ShippingBar.threshold,
         dashboardConfig: window.MRH_MEGAMENU_CONFIG ? 'loaded (' + window.MRH_MEGAMENU_CONFIG.length + ' entries)' : 'not available'
@@ -1707,52 +1865,81 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
 })();
 </script>
 <style>
-/* v1.6.0 Offcanvas Mobile Menu */
+/* v1.8.0 Offcanvas Mobile Menu – Redesign mit Icons + Promo */
 .mrh-mobile-overlay {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
   background: rgba(0,0,0,0.5); z-index: 99998;
   opacity: 0; visibility: hidden;
   transition: opacity 0.3s ease, visibility 0.3s ease;
-  -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
 }
 .mrh-mobile-overlay.open { opacity: 1; visibility: visible; }
 
 .mrh-mobile-panel {
-  position: fixed; top: 0; left: 0; width: 85%; max-width: 340px; height: 100%;
-  background: #fff; z-index: 99999;
+  position: fixed; top: 0; left: 0; width: 85%; max-width: 360px; height: 100%;
+  background: #fafcfa; z-index: 99999;
   transform: translateX(-105%);
   transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 4px 0 24px rgba(0,0,0,0.15);
+  box-shadow: 4px 0 32px rgba(0,0,0,0.18);
   display: flex; flex-direction: column;
   overflow: hidden;
 }
 .mrh-mobile-panel.open { transform: translateX(0); }
 
+/* Header: Grüner Gradient mit Branding */
 .mrh-mobile-header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 20px; background: #2d7a3a; color: #fff;
+  padding: 18px 20px;
+  background: linear-gradient(135deg, #2d7a3a 0%, #1a5c28 100%);
+  color: #fff;
   flex-shrink: 0;
 }
 .mrh-mobile-title {
-  font-size: 1.1rem; font-weight: 700; letter-spacing: 0.02em;
+  font-size: 1.15rem; font-weight: 700; letter-spacing: 0.03em;
 }
+.mrh-mobile-title i { margin-right: 6px; opacity: 0.9; }
 .mrh-mobile-close {
-  background: none; border: none; color: #fff; font-size: 1.4rem;
-  cursor: pointer; padding: 4px 8px; border-radius: 6px;
+  background: rgba(255,255,255,0.1); border: none; color: #fff; font-size: 1.3rem;
+  cursor: pointer; padding: 6px 10px; border-radius: 8px;
   transition: background 0.2s;
 }
-.mrh-mobile-close:hover { background: rgba(255,255,255,0.15); }
+.mrh-mobile-close:hover { background: rgba(255,255,255,0.25); }
 
+/* Suchleiste */
+.mrh-mobile-search {
+  padding: 12px 16px; background: #f0f5f0; border-bottom: 1px solid #e2e8e2;
+  flex-shrink: 0;
+}
+.mrh-mobile-search-form {
+  display: flex; gap: 0; border-radius: 8px; overflow: hidden;
+  border: 1px solid #d0dcd0;
+}
+.mrh-mobile-search-input {
+  flex: 1; padding: 10px 14px; border: none; outline: none;
+  font-size: 0.9rem; background: #fff; color: #333;
+}
+.mrh-mobile-search-input::placeholder { color: #999; }
+.mrh-mobile-search-btn {
+  background: #2d7a3a; color: #fff; border: none;
+  padding: 10px 16px; cursor: pointer;
+  transition: background 0.2s;
+}
+.mrh-mobile-search-btn:hover { background: #236b2f; }
+
+/* Body */
 .mrh-mobile-body {
   flex: 1; overflow-y: auto; overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
 }
 
+/* Navigation Liste */
 .mrh-mobile-nav {
   list-style: none; margin: 0; padding: 0;
 }
-.mrh-mobile-item { border-bottom: 1px solid #f0f0f0; }
+.mrh-mobile-item {
+  border-bottom: 1px solid #eef2ee;
+}
 
 .mrh-mobile-link-row {
   display: flex; align-items: stretch;
@@ -1760,22 +1947,42 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
 .mrh-mobile-link-row .mrh-mobile-link {
   flex: 1;
 }
+
+/* Links mit Icons */
 .mrh-mobile-link {
-  display: block; padding: 14px 20px;
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 20px;
   color: #333; text-decoration: none; font-size: 0.95rem;
   font-weight: 500; transition: background 0.15s, color 0.15s;
 }
 .mrh-mobile-link:hover, .mrh-mobile-link:focus {
-  background: #f5f9f5; color: #2d7a3a;
+  background: #edf7ee; color: #2d7a3a;
 }
 
+/* Icon-Span */
+.mrh-mobile-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; flex-shrink: 0;
+  background: rgba(45, 122, 58, 0.08);
+  border-radius: 6px;
+  color: #2d7a3a; font-size: 0.85rem;
+  transition: background 0.2s, color 0.2s;
+}
+.mrh-mobile-link:hover .mrh-mobile-icon {
+  background: rgba(45, 122, 58, 0.15);
+}
+
+/* Toggle-Button */
 .mrh-mobile-toggle {
-  background: none; border: none; border-left: 1px solid #f0f0f0;
-  padding: 0 16px; cursor: pointer; color: #888;
-  transition: color 0.2s, transform 0.3s;
+  background: none; border: none; border-left: 1px solid #eef2ee;
+  padding: 0 16px; cursor: pointer; color: #999;
+  transition: color 0.2s;
   display: flex; align-items: center;
 }
 .mrh-mobile-toggle:hover { color: #2d7a3a; }
+.mrh-mobile-toggle i {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
 .mrh-mobile-item.open > .mrh-mobile-link-row > .mrh-mobile-toggle,
 .mrh-mobile-l2.open > .mrh-mobile-link-row > .mrh-mobile-toggle {
   color: #2d7a3a;
@@ -1785,22 +1992,94 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
   transform: rotate(180deg);
 }
 
+/* Submenüs */
 .mrh-mobile-sub {
   list-style: none; margin: 0; padding: 0;
   max-height: 0; overflow: hidden;
   transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  background: #fafafa;
+  background: #f5f8f5;
 }
 .mrh-mobile-item.open > .mrh-mobile-sub,
 .mrh-mobile-l2.open > .mrh-mobile-sub { max-height: 2000px; }
 
 .mrh-mobile-l2 .mrh-mobile-link {
-  padding-left: 36px; font-size: 0.9rem; font-weight: 400; color: #555;
+  padding-left: 36px; font-size: 0.9rem; font-weight: 400; color: #555; gap: 0;
 }
 .mrh-mobile-l3 .mrh-mobile-link {
-  padding-left: 52px; font-size: 0.85rem; font-weight: 400; color: #777;
+  padding-left: 52px; font-size: 0.85rem; font-weight: 400; color: #777; gap: 0;
 }
-.mrh-mobile-l3-sub { background: #f5f5f5; }
+.mrh-mobile-l3-sub { background: #f0f3f0; }
+
+/* Konto-Bereich */
+.mrh-mobile-account {
+  margin: 12px 16px; padding: 14px 16px;
+  background: #fff; border: 1px solid #e2e8e2;
+  border-radius: 10px;
+}
+.mrh-mobile-account-title {
+  font-size: 0.85rem; font-weight: 600; color: #555;
+  margin-bottom: 10px; padding-bottom: 8px;
+  border-bottom: 1px solid #eef2ee;
+}
+.mrh-mobile-account-title i { color: #2d7a3a; margin-right: 6px; }
+.mrh-mobile-account-links {
+  display: flex; gap: 8px;
+}
+.mrh-mobile-account-link {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 12px; border-radius: 8px;
+  font-size: 0.85rem; font-weight: 500;
+  text-decoration: none; transition: all 0.2s;
+}
+.mrh-mobile-account-link:first-child {
+  background: #2d7a3a; color: #fff;
+}
+.mrh-mobile-account-link:first-child:hover {
+  background: #236b2f;
+}
+.mrh-mobile-account-link:last-child {
+  background: #f0f5f0; color: #2d7a3a; border: 1px solid #d0dcd0;
+}
+.mrh-mobile-account-link:last-child:hover {
+  background: #e0ede0;
+}
+
+/* Promo-Bereiche */
+.mrh-mobile-promo {
+  padding: 12px 16px;
+}
+.mrh-mobile-promo-top {
+  border-bottom: 1px solid #eef2ee;
+}
+.mrh-mobile-promo-bottom {
+  border-top: 1px solid #eef2ee;
+}
+.mrh-mobile-promo-item {
+  margin-bottom: 8px;
+}
+.mrh-mobile-promo-item:last-child { margin-bottom: 0; }
+.mrh-mobile-promo-banner {
+  display: block; border-radius: 8px; overflow: hidden;
+  transition: opacity 0.2s;
+}
+.mrh-mobile-promo-banner:hover { opacity: 0.9; }
+.mrh-mobile-promo-banner img {
+  width: 100%; height: auto; display: block;
+  border-radius: 8px;
+}
+
+/* Footer-Info */
+.mrh-mobile-footer {
+  padding: 14px 16px; margin: 8px 16px 16px;
+  background: #f0f5f0; border-radius: 8px;
+  font-size: 0.8rem; color: #666;
+}
+.mrh-mobile-footer-item {
+  padding: 4px 0;
+}
+.mrh-mobile-footer-item i {
+  color: #2d7a3a; margin-right: 8px; width: 16px; text-align: center;
+}
 
 /* Body scroll lock */
 body.mrh-no-scroll { overflow: hidden !important; }
