@@ -790,7 +790,7 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
         // Spalten-Titel
         var titleEl = document.createElement('div');
         titleEl.className = 'mrh-mega-col-title';
-        titleEl.innerHTML = '<span class="' + (col.icon && col.icon.indexOf('fa-solid')===0||col.icon&&col.icon.indexOf('fa-regular')===0||col.icon&&col.icon.indexOf('fa-brands')===0 ? col.icon : 'fa-solid '+(col.icon||'fa-folder')) + '"></span> ' + (col.title || 'Kategorie');
+        titleEl.innerHTML = '<span class="' + (col.icon && (col.icon.indexOf('fa-solid')===0||col.icon.indexOf('fa-regular')===0||col.icon.indexOf('fa-light')===0||col.icon.indexOf('fa-thin')===0||col.icon.indexOf('fa-brands')===0) ? col.icon : 'fa-solid '+(col.icon||'fa-folder')) + '"></span> ' + (col.title || 'Kategorie');
         colEl.appendChild(titleEl);
 
         // Links
@@ -835,7 +835,7 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
         var title = document.createElement('div');
         title.className = 'mrh-mega-col-title';
         var _ic = colIcons[idx] || 'fa-folder';
-        var _icCls = (_ic.indexOf('fa-solid')===0||_ic.indexOf('fa-regular')===0||_ic.indexOf('fa-brands')===0) ? _ic : 'fa-solid '+_ic;
+        var _icCls = (_ic.indexOf('fa-solid')===0||_ic.indexOf('fa-regular')===0||_ic.indexOf('fa-light')===0||_ic.indexOf('fa-thin')===0||_ic.indexOf('fa-brands')===0) ? _ic : 'fa-solid '+_ic;
         title.innerHTML = '<span class="' + _icCls + '"></span> ' + (colTitles[idx] || 'Kategorie ' + (idx + 1));
         col.appendChild(title);
 
@@ -881,7 +881,7 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
         var title = document.createElement('div');
         title.className = 'mrh-mega-col-title';
         var _ic = colIcons[idx] || 'fa-folder';
-        var _icCls = (_ic.indexOf('fa-solid')===0||_ic.indexOf('fa-regular')===0||_ic.indexOf('fa-brands')===0) ? _ic : 'fa-solid '+_ic;
+        var _icCls = (_ic.indexOf('fa-solid')===0||_ic.indexOf('fa-regular')===0||_ic.indexOf('fa-light')===0||_ic.indexOf('fa-thin')===0||_ic.indexOf('fa-brands')===0) ? _ic : 'fa-solid '+_ic;
         title.innerHTML = '<span class="' + _icCls + '"></span> ' + (colTitles[idx] || 'Kategorie ' + (idx + 1));
         col.appendChild(title);
 
@@ -1002,7 +1002,7 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
       promo.innerHTML =
         '<div class="mrh-mega-promo-inner">' +
           '<div class="mrh-mega-promo-title">' +
-            '<span class="' + (icon.indexOf('fa-solid')===0||icon.indexOf('fa-regular')===0||icon.indexOf('fa-brands')===0 ? icon : 'fa-solid '+icon) + '"></span> ' + titleText +
+            '<span class="' + (icon.indexOf('fa-solid')===0||icon.indexOf('fa-regular')===0||icon.indexOf('fa-light')===0||icon.indexOf('fa-thin')===0||icon.indexOf('fa-brands')===0 ? icon : 'fa-solid '+icon) + '"></span> ' + titleText +
           '</div>' +
           '<div class="mrh-mega-promo-brand">' + brand + '</div>' +
           '<div class="mrh-mega-promo-text">' + text + '</div>' +

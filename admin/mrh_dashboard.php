@@ -366,9 +366,11 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
         <div class="modal-body">
           <div class="d-flex gap-2 mb-3">
             <div class="btn-group" role="group">
-              <button type="button" class="btn btn-sm btn-outline-success active" data-icon-style="solid" onclick="switchIconStyle('solid',this)">Solid (1402)</button>
-              <button type="button" class="btn btn-sm btn-outline-primary" data-icon-style="regular" onclick="switchIconStyle('regular',this)">Regular (163)</button>
-              <button type="button" class="btn btn-sm btn-outline-secondary" data-icon-style="brands" onclick="switchIconStyle('brands',this)">Brands (495)</button>
+              <button type="button" class="btn btn-sm btn-outline-success active" data-icon-style="solid" onclick="switchIconStyle('solid',this)">Solid</button>
+              <button type="button" class="btn btn-sm btn-outline-primary" data-icon-style="regular" onclick="switchIconStyle('regular',this)">Regular</button>
+              <button type="button" class="btn btn-sm btn-outline-info" data-icon-style="light" onclick="switchIconStyle('light',this)">Light</button>
+              <button type="button" class="btn btn-sm btn-outline-warning" data-icon-style="thin" onclick="switchIconStyle('thin',this)">Thin</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary" data-icon-style="brands" onclick="switchIconStyle('brands',this)">Brands</button>
             </div>
             <input type="text" class="form-control form-control-sm flex-grow-1" id="iconSearchInput" placeholder="Icon suchen... (z.B. leaf, cannabis, star, home)">
           </div>
@@ -599,13 +601,15 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
     // Hilfsfunktion: Icon-Klasse für Anzeige bauen
     function iconDisplayClass(fullIcon) {
       if (!fullIcon) return 'fa-solid fa-question';
-      if (fullIcon.indexOf('fa-solid ') === 0 || fullIcon.indexOf('fa-regular ') === 0 || fullIcon.indexOf('fa-brands ') === 0) return fullIcon;
+      if (fullIcon.indexOf('fa-solid ') === 0 || fullIcon.indexOf('fa-regular ') === 0 || fullIcon.indexOf('fa-light ') === 0 || fullIcon.indexOf('fa-thin ') === 0 || fullIcon.indexOf('fa-brands ') === 0 || fullIcon.indexOf('fa-duotone ') === 0) return fullIcon;
       return 'fa-solid ' + fullIcon;
     }
 
     // Stil-Prefix für aktuellen Tab
     function getStylePrefix() {
       if (currentIconStyle === 'regular') return 'fa-regular';
+      if (currentIconStyle === 'light') return 'fa-light';
+      if (currentIconStyle === 'thin') return 'fa-thin';
       if (currentIconStyle === 'brands') return 'fa-brands';
       return 'fa-solid';
     }
@@ -650,7 +654,7 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
       var prefix = getStylePrefix();
       icons.forEach(function(icon) {
         if (search && icon.toLowerCase().indexOf(search) === -1) return;
-        var fullIcon = prefix + ' ' + icon;
+        var fullIcon = prefix + ' fa-' + icon;
         html += '<div class="icon-item' + (fullIcon === selectedIcon ? ' selected' : '') + '" data-icon="' + fullIcon + '" title="' + fullIcon + '"><span class="' + fullIcon + '"></span></div>';
       });
       grid.innerHTML = html || '<div class="text-muted p-3">Keine Icons gefunden.</div>';
