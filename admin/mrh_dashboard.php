@@ -192,12 +192,8 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
   <title><?php echo $heading_title; ?></title>
   <?php echo '<link rel="stylesheet" href="includes/stylesheet.css">'; ?>
   <link href="assets/css/bootstrap.min.css" rel="stylesheet">
-  <?php
-  // FA6 Pro vom eigenen Server laden (keine externen CDN-Links!)
-  $tpl_base = (defined('HTTP_SERVER') ? HTTP_SERVER : '/') . 'templates/' . (defined('CURRENT_TEMPLATE') ? CURRENT_TEMPLATE : 'tpl_mrh_2026') . '/css/';
-  echo '<link href="' . $tpl_base . 'fontawesome-6.css" rel="stylesheet">';
-  echo '<link href="' . $tpl_base . 'fontawesome-6-custom.css" rel="stylesheet">';
-  ?>
+  <link href="../templates/tpl_mrh_2026/css/fontawesome-6.css" rel="stylesheet">
+  <link href="../templates/tpl_mrh_2026/css/fontawesome-6-custom.css" rel="stylesheet">
   <style>
     body { background: #f4f6f9; font-family: 'Segoe UI', Tahoma, sans-serif; }
     .mrh-header { background: linear-gradient(135deg, #2d7a3a 0%, #1a5c28 100%); color: #fff; padding: 20px 30px; border-radius: 12px; margin-bottom: 25px; }
