@@ -191,7 +191,11 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?php echo $heading_title; ?></title>
   <?php echo '<link rel="stylesheet" href="includes/stylesheet.css">'; ?>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <?php
+  // Bootstrap lokal laden (keine externen CDN-Links!)
+  $admin_assets = (defined('HTTP_SERVER') ? HTTP_SERVER : '/') . (defined('DIR_ADMIN') ? DIR_ADMIN : 'admin/') . 'assets/';
+  echo '<link href="' . $admin_assets . 'css/bootstrap.min.css" rel="stylesheet">';
+  ?>
   <?php
   // FA6 Pro vom eigenen Server laden (keine externen CDN-Links!)
   $tpl_base = (defined('HTTP_SERVER') ? HTTP_SERVER : '/') . 'templates/' . (defined('CURRENT_TEMPLATE') ? CURRENT_TEMPLATE : 'tpl_mrh_2026') . '/css/';
@@ -390,8 +394,10 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  <?php
+  echo '<script src="' . $admin_assets . 'js/bootstrap.bundle.min.js"></script>';
+  echo '<script src="' . $admin_assets . 'js/Sortable.min.js"></script>';
+  ?>
 
   <script>
   (function() {
