@@ -11,6 +11,7 @@
 
    v1.2.0: Config wird direkt per PHP eingelesen (kein Timing-Problem)
    v1.3.0: Promo-Daten (HTML/Banner/Special/New) pro Kategorie
+   v1.7.0: Hamburger-Button Styling Fix (gleiche Größe wie Header-Icons)
    ============================================================ */
 
 // ---- Mega-Menu Config direkt einlesen (statt separate JS-Datei) ----
@@ -1812,4 +1813,41 @@ body.mrh-no-scroll { overflow: hidden !important; }
 .mrh-promo-product-name { font-size: 0.8rem; line-height: 1.2; color: #333; font-weight: 500; }
 .mrh-promo-discount { display: inline-block; background: #dc3545; color: #fff; padding: 1px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; width: fit-content; }
 .mrh-promo-new-badge { display: inline-block; background: #2d7a3a; color: #fff; padding: 1px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; width: fit-content; }
+
+/* v1.7.0 – Hamburger-Button: gleiche Styles wie #iconMenu li.rechts > a */
+#toggle_mobilemenu {
+  padding: 8px 12px !important;
+  margin: 0 !important;
+  border-radius: 8px;
+  min-width: 68px !important;
+  cursor: pointer !important;
+  transition: background-color 0.2s, color 0.2s;
+  text-decoration: none !important;
+  color: var(--tpl-text-standard);
+}
+#toggle_mobilemenu:hover {
+  background-color: rgba(74, 140, 42, 0.06);
+  color: var(--tpl-main-color);
+}
+#toggle_mobilemenu .fa-solid,
+#toggle_mobilemenu .fa-regular {
+  font-size: 22px !important;
+  color: var(--tpl-text-standard);
+  display: block !important;
+  text-align: center;
+  transition: color 0.2s;
+}
+#toggle_mobilemenu:hover .fa-solid,
+#toggle_mobilemenu:hover .fa-regular {
+  color: var(--tpl-main-color);
+}
+/* Sticky Header: Hamburger anpassen */
+#main-header.mrh-sticky #toggle_mobilemenu {
+  padding: 6px 10px !important;
+}
+#main-header.mrh-sticky #toggle_mobilemenu .fa-solid,
+#main-header.mrh-sticky #toggle_mobilemenu .fa-regular {
+  font-size: 20px !important;
+  color: var(--mrh-sticky-text, var(--tpl-text-standard));
+}
 </style>
