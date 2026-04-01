@@ -241,7 +241,7 @@ class mrh_dashboard {
     $this->_insertItem($config_id, 581883, 4); // Klassiker
 
     // Spalte 3: Anbau & Spezial
-    $this->_insertColumn(581210, 2, 'Anbau & Spezial', 'Growing & Special', 'Culture & Spécial', 'Cultivo & Especial', 'fa-pagelines', $now);
+    $this->_insertColumn(581210, 2, 'Anbau & Spezial', 'Growing & Special', 'Culture & Spécial', 'Cultivo & Especial', 'fa-brands fa-pagelines', $now);
     $config_id = xtc_db_insert_id();
     $this->_insertItem($config_id, 581894, 0); // Reine Indoor Samen
     $this->_insertItem($config_id, 581895, 1); // Reine Outdoor Samen
@@ -255,7 +255,7 @@ class mrh_dashboard {
     // ============================================================
 
     // Spalte 1: Pflanzen kaufen
-    $this->_insertColumn(581964, 0, 'Pflanzen kaufen', 'Buy Plants', 'Acheter des Plantes', 'Comprar Plantas', 'fa-pagelines', $now);
+    $this->_insertColumn(581964, 0, 'Pflanzen kaufen', 'Buy Plants', 'Acheter des Plantes', 'Comprar Plantas', 'fa-brands fa-pagelines', $now);
     $config_id = xtc_db_insert_id();
     // Sämlinge - ID wird beim Deploy ermittelt, vorerst leer
 

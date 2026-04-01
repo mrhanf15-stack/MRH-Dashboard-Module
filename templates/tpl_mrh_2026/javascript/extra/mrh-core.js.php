@@ -127,11 +127,12 @@ if (file_exists($_mrh_cache_file)) {
 /* MRH Mega-Menu Config (inline, v1.2.0) */
 window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
 <?php endif; ?>
-/* ============================================================
-   MRH 2026 Core – v1.1.0
-   Vanilla JS – kein jQuery!
-   v1.1.0: Bugfix getDashboardConfig + buildDropdown + _buildFromDashboardConfig
-   ============================================================ */
+/* ----------------------------------------------------------
+     MRH 2026 Core – v1.4.0
+     Vanilla JS – kein jQuery!
+     v1.1.0: Bugfix getDashboardConfig + buildDropdown + _buildFromDashboardConfig
+     v1.4.0: FA6 Pro Icon-Normalisierung (Brands vs Solid Auto-Detect)
+     ============================================================ */
 (function() {
   'use strict';
 
@@ -139,6 +140,81 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
      NAMESPACE: Alle MRH-Funktionen unter window.MRH
      ---------------------------------------------------------- */
   window.MRH = window.MRH || {};
+
+  /* ----------------------------------------------------------
+     FA6 BRANDS ICON SET: Automatische Erkennung
+     Icons die NUR als fa-brands funktionieren (nicht fa-solid)
+     Generiert aus fontawesome-6.css Brands-Block
+     ---------------------------------------------------------- */
+  var _FA6_BRANDS = new Set(['42-group','500px','accessible-icon','accusoft','adn','adversal','affiliatetheme','airbnb','algolia','alipay','amazon','amazon-pay','amilia','android','angellist','angrycreative','angular','app-store','app-store-ios','apper','apple','apple-pay','artstation','asymmetrik','atlassian','audible','autoprefixer','avianex','aviato','aws','bandcamp','battle-net','behance','behance-square','bilibili','bimobject','bitbucket','bitcoin','bity','black-tie','blackberry','blogger','blogger-b','bluesky','bluetooth','bluetooth-b','bootstrap','bots','brave','brave-reverse','btc','buffer','buromobelexperte','buy-n-large','buysellads','canadian-maple-leaf','cc-amazon-pay','cc-amex','cc-apple-pay','cc-diners-club','cc-discover','cc-jcb','cc-mastercard','cc-paypal','cc-stripe','cc-visa','centercode','centos','chrome','chromecast','cloudflare','cloudscale','cloudsmith','cloudversify','cmplid','codepen','codiepie','confluence','connectdevelop','contao','cotton-bureau','cpanel','creative-commons','creative-commons-by','creative-commons-nc','creative-commons-nc-eu','creative-commons-nc-jp','creative-commons-nd','creative-commons-pd','creative-commons-pd-alt','creative-commons-remix','creative-commons-sa','creative-commons-sampling','creative-commons-sampling-plus','creative-commons-share','creative-commons-zero','critical-role','css3','css3-alt','cuttlefish','d-and-d','d-and-d-beyond','dailymotion','dart-lang','dashcube','debian','deezer','delicious','deploydog','deskpro','dev','deviantart','dhl','diaspora','digg','digital-ocean','discord','discourse','dochub','docker','draft2digital','dribbble','dribbble-square','dropbox','drupal','dyalog','earlybirds','ebay','edge','edge-legacy','elementor','ello','ember','empire','envira','erlang','ethereum','etsy','evernote','expeditedssl','facebook','facebook-f','facebook-messenger','facebook-square','fantasy-flight-games','fedex','fedora','figma','firefox','firefox-browser','first-order','first-order-alt','firstdraft','flickr','flipboard','flutter','fly','font-awesome','font-awesome-alt','font-awesome-flag','font-awesome-logo-full','fonticons','fonticons-fi','fort-awesome','fort-awesome-alt','forumbee','foursquare','free-code-camp','freebsd','fulcrum','galactic-republic','galactic-senate','get-pocket','gg','gg-circle','git','git-alt','git-square','github','github-alt','github-square','gitkraken','gitlab','gitlab-square','gitter','glide','glide-g','gofore','golang','goodreads','goodreads-g','google','google-drive','google-pay','google-play','google-plus','google-plus-g','google-plus-square','google-scholar','google-wallet','gratipay','grav','gripfire','grunt','guilded','gulp','hacker-news','hacker-news-square','hackerrank','hashnode','hips','hire-a-helper','hive','hooli','hornbill','hotjar','houzz','html5','hubspot','ideal','imdb','instagram','instagram-square','instalod','intercom','internet-explorer','invision','ioxhost','itch-io','itunes','itunes-note','java','jedi-order','jenkins','jira','joget','joomla','js','js-square','jsfiddle','jxl','kaggle','keybase','keycdn','kickstarter','kickstarter-k','korvue','laravel','lastfm','lastfm-square','leanpub','less','letterboxd','line','linkedin','linkedin-in','linode','linux','lyft','magento','mailchimp','mandalorian','markdown','mastodon','maxcdn','mdb','medapps','medium','medium-m','medrt','meetup','megaport','mendeley','meta','microblog','microsoft','mintbit','mix','mixcloud','mixer','mizuni','modx','monero','napster','neos','nimblr','node','node-js','npm','ns8','nutritionix','octopus-deploy','odnoklassniki','odnoklassniki-square','odysee','old-republic','opencart','openid','opensuse','opera','optin-monster','orcid','osi','padlet','page4','pagelines','palfed','patreon','paypal','perbyte','periscope','phabricator','phoenix-framework','phoenix-squadron','php','pied-piper','pied-piper-alt','pied-piper-hat','pied-piper-pp','pied-piper-square','pinterest','pinterest-p','pinterest-square','pix','pixiv','playstation','product-hunt','pushed','python','qq','quinscape','quora','r-project','raspberry-pi','ravelry','react','reacteurope','readme','rebel','red-river','reddit','reddit-alien','reddit-square','redhat','rendact','renren','replyd','researchgate','resolving','rev','rocketchat','rockrms','rust','safari','salesforce','sass','schlix','screenpal','scribd','searchengin','sellcast','sellsy','servicestack','shirtsinbulk','shopify','shopware','signal-messenger','simplybuilt','sistrix','sith','sitrox','sketch','skype','slack','slack-hash','slideshare','snapchat','snapchat-ghost','snapchat-square','soundcloud','sourcetree','space-awesome','speakap','speaker-deck','spotify','square-behance','square-bluesky','square-dribbble','square-facebook','square-font-awesome','square-font-awesome-stroke','square-git','square-github','square-gitlab','square-google-plus','square-hacker-news','square-instagram','square-js','square-kickstarter','square-lastfm','square-letterboxd','square-odnoklassniki','square-pied-piper','square-pinterest','square-reddit','square-snapchat','square-steam','square-threads','square-tumblr','square-twitter','square-upwork','square-viadeo','square-vimeo','square-web-awesome','square-web-awesome-stroke','square-whatsapp','square-x-twitter','square-xing','square-youtube','squarespace','stack-exchange','stack-overflow','stackpath','staylinked','steam','steam-square','steam-symbol','sticker-mule','strava','stripe','stripe-s','stubber','studiovinari','stumbleupon','stumbleupon-circle','superpowers','supple','suse','swift','symfony','teamspeak','telegram','telegram-plane','tencent-weibo','the-red-yeti','themeco','themeisle','think-peaks','threads','tiktok','trade-federation','trello','tumblr','tumblr-square','twitch','twitter','twitter-square','typo3','uber','ubuntu','uikit','umbraco','uncharted','uniregistry','unity','unsplash','untappd','ups','upwork','usb','ussunnah','vaadin','viacoin','viadeo','viadeo-square','viber','vimeo','vimeo-square','vimeo-v','vine','vk','vnv','vuejs','watchman-monitoring','waze','web-awesome','weebly','weibo','weixin','whatsapp','whatsapp-square','whmcs','wikipedia-w','windows','wirsindhandwerk','wix','wizards-of-the-coast','wodu','wolf-pack-battalion','wordpress','wordpress-simple','wpbeginner','wpexplorer','wpforms','wpressr','x-twitter','xbox','xing','xing-square','y-combinator','yahoo','yammer','yandex','yandex-international','yarn','yelp','yoast','youtube','youtube-square','zhihu']);
+
+  /**
+   * FA6 Icon-Klasse normalisieren
+   * Erkennt automatisch ob ein Icon ein Brands-Icon ist
+   * und setzt den korrekten Prefix (fa-brands statt fa-solid)
+   *
+   * Eingabe-Formate:
+   *   'fa-pagelines'              → 'fa-brands fa-pagelines'
+   *   'fa-solid fa-pagelines'     → 'fa-brands fa-pagelines'  (korrigiert!)
+   *   'fa-solid fa-seedling'      → 'fa-solid fa-seedling'    (bleibt)
+   *   'fas fa-check-circle'       → 'fa-solid fa-circle-check' (FA4→FA6)
+   *   'fa-seedling'               → 'fa-solid fa-seedling'
+   */
+  function _normalizeFA6(iconClass) {
+    if (!iconClass || typeof iconClass !== 'string') return 'fa-solid fa-folder';
+    iconClass = iconClass.trim();
+
+    // FA4 Shorthand → FA6 (fas/far/fal/fat/fab)
+    var fa4map = {'fas':'fa-solid','far':'fa-regular','fal':'fa-light','fat':'fa-thin','fab':'fa-brands'};
+    var parts = iconClass.split(/\s+/);
+    if (parts.length >= 2 && fa4map[parts[0]]) {
+      parts[0] = fa4map[parts[0]];
+      iconClass = parts.join(' ');
+    }
+
+    // FA4 icon name aliases → FA6 names
+    var fa4aliases = {
+      'fa-check-circle': 'fa-circle-check',
+      'fa-times-circle': 'fa-circle-xmark',
+      'fa-times': 'fa-xmark',
+      'fa-window-close': 'fa-rectangle-xmark',
+      'fa-arrow-circle-right': 'fa-circle-arrow-right',
+      'fa-arrow-circle-left': 'fa-circle-arrow-left'
+    };
+    for (var old in fa4aliases) {
+      if (iconClass.indexOf(old) > -1) {
+        iconClass = iconClass.replace(old, fa4aliases[old]);
+      }
+    }
+
+    // Bereits vollständig qualifiziert (fa-solid/fa-regular/fa-light/fa-thin/fa-brands)?
+    var hasPrefix = /^fa-(solid|regular|light|thin|brands)\s/.test(iconClass);
+
+    if (hasPrefix) {
+      // Extrahiere den Icon-Namen (zweiter Teil)
+      var p = iconClass.split(/\s+/);
+      var prefix = p[0];
+      var name = p[1] || '';
+      var bare = name.replace(/^fa-/, '');
+
+      // Korrektur: Wenn als fa-solid markiert aber eigentlich ein Brands-Icon
+      if (prefix !== 'fa-brands' && _FA6_BRANDS.has(bare)) {
+        return 'fa-brands ' + name;
+      }
+      return iconClass;
+    }
+
+    // Nur Icon-Name ohne Prefix (z.B. 'fa-pagelines' oder 'fa-seedling')
+    var bareName = iconClass.replace(/^fa-/, '');
+    if (_FA6_BRANDS.has(bareName)) {
+      return 'fa-brands fa-' + bareName;
+    }
+    // Default: fa-solid
+    return 'fa-solid ' + (iconClass.indexOf('fa-') === 0 ? iconClass : 'fa-' + iconClass);
+  }
+
+  // Global verfügbar machen
+  window.MRH_normalizeFA6 = _normalizeFA6;
 
   /* ----------------------------------------------------------
      UTILITY: Hilfs-Funktionen
@@ -256,7 +332,7 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
       this.fill.style.width = pct + '%';
 
       if (pct >= 100 && this.text) {
-        this.text.innerHTML = '<i class="fas fa-check-circle"></i> Gratis Versand!';
+        this.text.innerHTML = '<i class="' + _normalizeFA6('fas fa-check-circle') + '"></i> Gratis Versand!';
         this.fill.style.backgroundColor = 'var(--mrh-green-accent)';
       }
     }
@@ -313,7 +389,7 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
       btn.id = 'mrh-back-to-top';
       btn.className = 'mrh-back-to-top';
       btn.setAttribute('aria-label', 'Nach oben scrollen');
-      btn.innerHTML = '<i class="fas fa-chevron-up"></i>';
+      btn.innerHTML = '<i class="' + _normalizeFA6('fa-solid fa-chevron-up') + '"></i>';
       document.body.appendChild(btn);
       this.btn = btn;
 
@@ -531,7 +607,7 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
         navItem.href = href;
         navItem.className = 'mrh-nav-item';
         navItem.setAttribute('data-nav', text.toLowerCase().replace(/\s+/g, '-'));
-        navItem.innerHTML = '<span class="' + iconClass + '"></span> ' +
+        navItem.innerHTML = '<span class="' + _normalizeFA6(iconClass) + '"></span> ' +
                             '<span>' + text + '</span>';
 
         if (hasSubmenu) {
@@ -790,7 +866,7 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
         // Spalten-Titel
         var titleEl = document.createElement('div');
         titleEl.className = 'mrh-mega-col-title';
-        titleEl.innerHTML = '<span class="' + (col.icon && (col.icon.indexOf('fa-solid')===0||col.icon.indexOf('fa-regular')===0||col.icon.indexOf('fa-light')===0||col.icon.indexOf('fa-thin')===0||col.icon.indexOf('fa-brands')===0) ? col.icon : 'fa-solid '+(col.icon||'fa-folder')) + '"></span> ' + (col.title || 'Kategorie');
+        titleEl.innerHTML = '<span class="' + _normalizeFA6(col.icon || 'fa-folder') + '"></span> ' + (col.title || 'Kategorie');
         colEl.appendChild(titleEl);
 
         // Links
@@ -834,8 +910,7 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
 
         var title = document.createElement('div');
         title.className = 'mrh-mega-col-title';
-        var _ic = colIcons[idx] || 'fa-folder';
-        var _icCls = (_ic.indexOf('fa-solid')===0||_ic.indexOf('fa-regular')===0||_ic.indexOf('fa-light')===0||_ic.indexOf('fa-thin')===0||_ic.indexOf('fa-brands')===0) ? _ic : 'fa-solid '+_ic;
+        var _icCls = _normalizeFA6(colIcons[idx] || 'fa-folder');
         title.innerHTML = '<span class="' + _icCls + '"></span> ' + (colTitles[idx] || 'Kategorie ' + (idx + 1));
         col.appendChild(title);
 
@@ -880,8 +955,7 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
 
         var title = document.createElement('div');
         title.className = 'mrh-mega-col-title';
-        var _ic = colIcons[idx] || 'fa-folder';
-        var _icCls = (_ic.indexOf('fa-solid')===0||_ic.indexOf('fa-regular')===0||_ic.indexOf('fa-light')===0||_ic.indexOf('fa-thin')===0||_ic.indexOf('fa-brands')===0) ? _ic : 'fa-solid '+_ic;
+        var _icCls = _normalizeFA6(colIcons[idx] || 'fa-folder');
         title.innerHTML = '<span class="' + _icCls + '"></span> ' + (colTitles[idx] || 'Kategorie ' + (idx + 1));
         col.appendChild(title);
 
@@ -992,7 +1066,7 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
       var promoData = document.querySelector('#mrhMegaPromoData');
       if (!promoData) return;
 
-      var icon = promoData.dataset.icon || 'fa-solid fa-percent';
+      var icon = _normalizeFA6(promoData.dataset.icon || 'fa-percent');
       var titleText = promoData.dataset.title || 'Aktion';
       var brand = promoData.dataset.brand || '';
       var text = promoData.dataset.text || '';
@@ -1002,7 +1076,7 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
       promo.innerHTML =
         '<div class="mrh-mega-promo-inner">' +
           '<div class="mrh-mega-promo-title">' +
-            '<span class="' + (icon.indexOf('fa-solid')===0||icon.indexOf('fa-regular')===0||icon.indexOf('fa-light')===0||icon.indexOf('fa-thin')===0||icon.indexOf('fa-brands')===0 ? icon : 'fa-solid '+icon) + '"></span> ' + titleText +
+            '<span class="' + icon + '"></span> ' + titleText +
           '</div>' +
           '<div class="mrh-mega-promo-brand">' + brand + '</div>' +
           '<div class="mrh-mega-promo-text">' + text + '</div>' +
@@ -1343,7 +1417,7 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
 
     // Debug-Info in Konsole (nur Entwicklung)
     if (window.location.hostname === 'localhost' || window.location.search.indexOf('debug=1') > -1) {
-      console.log('[MRH Core] v1.3.0 initialized', {
+      console.log('[MRH Core] v1.4.0 initialized (FA6 Brands Auto-Detect)', {
         modules: Object.keys(MRH).filter(function(k) { return typeof MRH[k] === 'object' && MRH[k].init; }),
         shippingThreshold: MRH.ShippingBar.threshold,
         dashboardConfig: window.MRH_MEGAMENU_CONFIG ? 'loaded (' + window.MRH_MEGAMENU_CONFIG.length + ' entries)' : 'not available'
