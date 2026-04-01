@@ -488,12 +488,12 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
 
       // Icon-Map für Hauptkategorien (aus Sprachdatei oder Fallback)
       var iconMap = {
-        'samen': 'fa-seedling',
-        'seed': 'fa-seedling',
-        'cannabis': 'fa-cannabis',
-        'cannabispflanz': 'fa-cannabis',
-        'grow': 'fa-sun',
-        'head': 'fa-bong',
+        'samen': 'fa-leaf',
+        'seed': 'fa-leaf',
+        'cannabis': 'fa-pagelines',
+        'cannabispflanz': 'fa-pagelines',
+        'grow': 'fa-sun-o',
+        'head': 'fa-flask',
         'default': 'fa-leaf'
       };
 
@@ -531,11 +531,11 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
         navItem.href = href;
         navItem.className = 'mrh-nav-item';
         navItem.setAttribute('data-nav', text.toLowerCase().replace(/\s+/g, '-'));
-        navItem.innerHTML = '<i class="fa-solid ' + iconClass + '"></i> ' +
+        navItem.innerHTML = '<i class="fa ' + iconClass + '"></i> ' +
                             '<span>' + text + '</span>';
 
         if (hasSubmenu) {
-          navItem.innerHTML += ' <i class="fa-solid fa-chevron-down mrh-nav-arrow"></i>';
+          navItem.innerHTML += ' <i class="fa fa-chevron-down mrh-nav-arrow"></i>';
           navItem.setAttribute('data-mega', 'true');
 
           // Mega-Dropdown Panel bauen
@@ -577,7 +577,7 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
       if (textLower.indexOf('samen') > -1 || textLower.indexOf('seed') > -1 || textLower.indexOf('hanfsamen') > -1) {
         return {
           titles: ['Cannabis Samen kaufen', 'Beliebte Auswahl', 'Anbau & Spezial'],
-          icons:  ['fa-seedling', 'fa-fire', 'fa-leaf'],
+          icons:  ['fa-leaf', 'fa-fire', 'fa-leaf'],
           maxPerCol: 5,
           useStaticOnly: true,
           staticLinks: [
@@ -636,7 +636,7 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
       if (textLower.indexOf('cannabispflanz') > -1 || textLower.indexOf('pflanz') > -1) {
         return {
           titles: ['Pflanzen kaufen'],
-          icons:  ['fa-cannabis'],
+          icons:  ['fa-pagelines'],
           maxPerCol: 5,
           useStaticOnly: false,
           columns: [[]]
@@ -790,7 +790,7 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
         // Spalten-Titel
         var titleEl = document.createElement('div');
         titleEl.className = 'mrh-mega-col-title';
-        titleEl.innerHTML = '<i class="fa-solid ' + (col.icon || 'fa-folder') + '"></i> ' + (col.title || 'Kategorie');
+        titleEl.innerHTML = '<i class="fa ' + (col.icon || 'fa-folder') + '"></i> ' + (col.title || 'Kategorie');
         colEl.appendChild(titleEl);
 
         // Links
@@ -811,7 +811,7 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
         var allLink = document.createElement('a');
         allLink.href = parentHref;
         allLink.className = 'mrh-mega-all';
-        allLink.innerHTML = 'Alle anzeigen <i class="fa-solid fa-arrow-right"></i>';
+        allLink.innerHTML = 'Alle anzeigen <i class="fa fa-arrow-right"></i>';
         colEl.appendChild(allLink);
 
         content.appendChild(colEl);
@@ -834,7 +834,7 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
 
         var title = document.createElement('div');
         title.className = 'mrh-mega-col-title';
-        title.innerHTML = '<i class="fa-solid ' + (colIcons[idx] || 'fa-folder') + '"></i> ' + (colTitles[idx] || 'Kategorie ' + (idx + 1));
+        title.innerHTML = '<i class="fa ' + (colIcons[idx] || 'fa-folder') + '"></i> ' + (colTitles[idx] || 'Kategorie ' + (idx + 1));
         col.appendChild(title);
 
         var ul = document.createElement('ul');
@@ -853,7 +853,7 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
         var allLink = document.createElement('a');
         allLink.href = parentHref;
         allLink.className = 'mrh-mega-all';
-        allLink.innerHTML = 'Alle anzeigen <i class="fa-solid fa-arrow-right"></i>';
+        allLink.innerHTML = 'Alle anzeigen <i class="fa fa-arrow-right"></i>';
         col.appendChild(allLink);
 
         content.appendChild(col);
@@ -878,7 +878,7 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
 
         var title = document.createElement('div');
         title.className = 'mrh-mega-col-title';
-        title.innerHTML = '<i class="fa-solid ' + (colIcons[idx] || 'fa-folder') + '"></i> ' + (colTitles[idx] || 'Kategorie ' + (idx + 1));
+        title.innerHTML = '<i class="fa ' + (colIcons[idx] || 'fa-folder') + '"></i> ' + (colTitles[idx] || 'Kategorie ' + (idx + 1));
         col.appendChild(title);
 
         var ul = document.createElement('ul');
@@ -898,7 +898,7 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
         var allLink = document.createElement('a');
         allLink.href = parentHref;
         allLink.className = 'mrh-mega-all';
-        allLink.innerHTML = 'Alle anzeigen <i class="fa-solid fa-arrow-right"></i>';
+        allLink.innerHTML = 'Alle anzeigen <i class="fa fa-arrow-right"></i>';
         col.appendChild(allLink);
 
         content.appendChild(col);
@@ -938,7 +938,7 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
         } else if (p.type === 'special' && p.products && p.products.length) {
           // Sonderangebote mit Rabatt
           var inner = '<div class="mrh-mega-promo-inner">';
-          inner += '<div class="mrh-mega-promo-title"><i class="fa-solid fa-percent"></i> Angebote</div>';
+          inner += '<div class="mrh-mega-promo-title"><i class="fa fa-percent"></i> Angebote</div>';
           for (var i = 0; i < p.products.length; i++) {
             var prod = p.products[i];
             inner += '<div class="mrh-promo-product">';
@@ -959,7 +959,7 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
         } else if (p.type === 'new' && p.products && p.products.length) {
           // Neue Artikel
           var inner = '<div class="mrh-mega-promo-inner">';
-          inner += '<div class="mrh-mega-promo-title"><i class="fa-solid fa-sparkles"></i> Neu eingetroffen</div>';
+          inner += '<div class="mrh-mega-promo-title"><i class="fa fa-star"></i> Neu eingetroffen</div>';
           for (var i = 0; i < p.products.length; i++) {
             var prod = p.products[i];
             inner += '<div class="mrh-promo-product">';
@@ -998,7 +998,7 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
       promo.innerHTML =
         '<div class="mrh-mega-promo-inner">' +
           '<div class="mrh-mega-promo-title">' +
-            '<i class="fa-solid ' + icon + '"></i> ' + titleText +
+            '<i class="fa ' + icon + '"></i> ' + titleText +
           '</div>' +
           '<div class="mrh-mega-promo-brand">' + brand + '</div>' +
           '<div class="mrh-mega-promo-text">' + text + '</div>' +
