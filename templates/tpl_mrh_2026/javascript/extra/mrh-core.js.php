@@ -133,6 +133,7 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
      v1.1.0: Bugfix getDashboardConfig + buildDropdown + _buildFromDashboardConfig
      v1.4.0: FA6 Pro Icon-Normalisierung (Brands vs Solid Auto-Detect)
      v1.5.0: Upgrade auf Font Awesome 7 Pro (7.2.0) – 587 Brands-Icons
+     v1.6.0: Vanilla JS Offcanvas Mobile-Menü (ersetzt jQuery mmenu)
      ============================================================ */
 (function() {
   'use strict';
@@ -1309,6 +1310,259 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
   };
 
   /* ----------------------------------------------------------
+     08 MOBILE MENU: Vanilla JS Offcanvas (ersetzt jQuery mmenu)
+     Slide-In von links, aufklappbare Unterkategorien, Touch-freundlich
+     ---------------------------------------------------------- */
+  MRH.MobileMenu = {
+    isOpen: false,
+    panel: null,
+    overlay: null,
+    toggleBtn: null,
+
+    init: function() {
+      // Nur auf Mobile initialisieren (oder wenn #mobiles_menu existiert)
+      var mobileMenu = document.getElementById('mobiles_menu');
+      var toggleBtn = document.getElementById('toggle_mobilemenu');
+      if (!mobileMenu || !toggleBtn) return;
+
+      this.toggleBtn = toggleBtn;
+
+      // Offcanvas Panel erstellen
+      this._buildPanel(mobileMenu);
+      this._bindEvents();
+    },
+
+    _buildPanel: function(sourceNav) {
+      var self = this;
+
+      // Overlay (Backdrop)
+      this.overlay = document.createElement('div');
+      this.overlay.className = 'mrh-mobile-overlay';
+      document.body.appendChild(this.overlay);
+
+      // Offcanvas Panel
+      this.panel = document.createElement('div');
+      this.panel.className = 'mrh-mobile-panel';
+      this.panel.setAttribute('aria-label', 'Mobile Navigation');
+      this.panel.setAttribute('role', 'dialog');
+
+      // Panel Header
+      var header = document.createElement('div');
+      header.className = 'mrh-mobile-header';
+      header.innerHTML = '<span class="mrh-mobile-title">Menu</span>' +
+                          '<button class="mrh-mobile-close" aria-label="Men\u00fc schlie\u00dfen">' +
+                          '<i class="fa-solid fa-xmark"></i></button>';
+      this.panel.appendChild(header);
+
+      // Panel Body (scrollbar)
+      var body = document.createElement('div');
+      body.className = 'mrh-mobile-body';
+
+      // CatNavi Elemente auslesen und als Offcanvas-Liste aufbauen
+      var catItems = sourceNav.querySelectorAll(':scope > ul.CatNavi > li.level1');
+      if (catItems.length === 0) {
+        // Fallback: Alle li.level1 suchen
+        catItems = sourceNav.querySelectorAll('li.level1');
+      }
+
+      var navList = document.createElement('ul');
+      navList.className = 'mrh-mobile-nav';
+
+      catItems.forEach(function(li) {
+        var link = li.querySelector(':scope > a');
+        if (!link) return;
+        var text = link.textContent.replace(/[\n\r]/g, '').trim();
+        var href = link.getAttribute('href') || '#';
+        var hasSubmenu = li.classList.contains('hassubmenu');
+        var subUl = li.querySelector(':scope > ul');
+
+        var navItem = document.createElement('li');
+        navItem.className = 'mrh-mobile-item' + (hasSubmenu ? ' has-children' : '');
+
+        var navLink = document.createElement('a');
+        navLink.href = href;
+        navLink.className = 'mrh-mobile-link';
+        navLink.textContent = text;
+
+        if (hasSubmenu && subUl) {
+          // Toggle-Button für Unterkategorien
+          var toggleSub = document.createElement('button');
+          toggleSub.className = 'mrh-mobile-toggle';
+          toggleSub.setAttribute('aria-label', 'Unterkategorien anzeigen');
+          toggleSub.innerHTML = '<i class="fa-solid fa-chevron-down"></i>';
+
+          var linkRow = document.createElement('div');
+          linkRow.className = 'mrh-mobile-link-row';
+          linkRow.appendChild(navLink);
+          linkRow.appendChild(toggleSub);
+          navItem.appendChild(linkRow);
+
+          // Submenu aufbauen
+          var subMenu = document.createElement('ul');
+          subMenu.className = 'mrh-mobile-sub';
+
+          var subItems = subUl.querySelectorAll(':scope > li');
+          subItems.forEach(function(subLi) {
+            var subLink = subLi.querySelector(':scope > a');
+            if (!subLink) return;
+            var subText = subLink.textContent.replace(/[\n\r]/g, '').trim();
+            var subHref = subLink.getAttribute('href') || '#';
+            var hasLevel3 = subLi.classList.contains('hassubmenu');
+            var level3Ul = subLi.querySelector(':scope > ul');
+
+            var subItem = document.createElement('li');
+            subItem.className = 'mrh-mobile-item mrh-mobile-l2' + (hasLevel3 ? ' has-children' : '');
+
+            var subNavLink = document.createElement('a');
+            subNavLink.href = subHref;
+            subNavLink.className = 'mrh-mobile-link';
+            subNavLink.textContent = subText;
+
+            if (hasLevel3 && level3Ul) {
+              var toggleL3 = document.createElement('button');
+              toggleL3.className = 'mrh-mobile-toggle';
+              toggleL3.setAttribute('aria-label', 'Unterkategorien anzeigen');
+              toggleL3.innerHTML = '<i class="fa-solid fa-chevron-down"></i>';
+
+              var linkRowL2 = document.createElement('div');
+              linkRowL2.className = 'mrh-mobile-link-row';
+              linkRowL2.appendChild(subNavLink);
+              linkRowL2.appendChild(toggleL3);
+              subItem.appendChild(linkRowL2);
+
+              // Level 3 Submenu
+              var l3Menu = document.createElement('ul');
+              l3Menu.className = 'mrh-mobile-sub mrh-mobile-l3-sub';
+
+              var l3Items = level3Ul.querySelectorAll(':scope > li');
+              l3Items.forEach(function(l3Li) {
+                var l3Link = l3Li.querySelector(':scope > a');
+                if (!l3Link) return;
+                var l3Text = l3Link.textContent.replace(/[\n\r]/g, '').trim();
+                var l3Href = l3Link.getAttribute('href') || '#';
+                var l3Item = document.createElement('li');
+                l3Item.className = 'mrh-mobile-item mrh-mobile-l3';
+                l3Item.innerHTML = '<a href="' + l3Href + '" class="mrh-mobile-link">' + l3Text + '</a>';
+                l3Menu.appendChild(l3Item);
+              });
+
+              subItem.appendChild(l3Menu);
+
+              // Level 3 Toggle Event
+              toggleL3.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var isOpen = subItem.classList.contains('open');
+                // Andere Level3 schließen
+                var siblings = subItem.parentElement.querySelectorAll('.mrh-mobile-l2.open');
+                siblings.forEach(function(s) { s.classList.remove('open'); });
+                if (!isOpen) subItem.classList.add('open');
+              });
+            } else {
+              subItem.appendChild(subNavLink);
+            }
+
+            subMenu.appendChild(subItem);
+          });
+
+          navItem.appendChild(subMenu);
+
+          // Level 1 Toggle Event
+          toggleSub.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var isOpen = navItem.classList.contains('open');
+            // Andere Level1 schließen
+            var siblings = navItem.parentElement.querySelectorAll('.mrh-mobile-item.open');
+            siblings.forEach(function(s) { s.classList.remove('open'); });
+            if (!isOpen) navItem.classList.add('open');
+          });
+        } else {
+          navItem.appendChild(navLink);
+        }
+
+        navList.appendChild(navItem);
+      });
+
+      body.appendChild(navList);
+      this.panel.appendChild(body);
+      document.body.appendChild(this.panel);
+
+      // Original #mobiles_menu verstecken (wird nicht mehr gebraucht)
+      sourceNav.style.display = 'none';
+    },
+
+    _bindEvents: function() {
+      var self = this;
+
+      // Hamburger-Button
+      this.toggleBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (self.isOpen) {
+          self.close();
+        } else {
+          self.open();
+        }
+      });
+
+      // Close-Button im Panel
+      var closeBtn = this.panel.querySelector('.mrh-mobile-close');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          self.close();
+        });
+      }
+
+      // Overlay klick schließt
+      this.overlay.addEventListener('click', function() {
+        self.close();
+      });
+
+      // ESC schließt
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && self.isOpen) {
+          self.close();
+        }
+      });
+
+      // Swipe-Left schließt (Touch)
+      var startX = 0;
+      this.panel.addEventListener('touchstart', function(e) {
+        startX = e.touches[0].clientX;
+      }, { passive: true });
+
+      this.panel.addEventListener('touchend', function(e) {
+        var endX = e.changedTouches[0].clientX;
+        if (startX - endX > 60) {
+          self.close();
+        }
+      }, { passive: true });
+    },
+
+    open: function() {
+      this.panel.classList.add('open');
+      this.overlay.classList.add('open');
+      document.body.classList.add('mrh-no-scroll');
+      this.toggleBtn.classList.add('active');
+      this.isOpen = true;
+
+      // Fokus auf Close-Button
+      var closeBtn = this.panel.querySelector('.mrh-mobile-close');
+      if (closeBtn) setTimeout(function() { closeBtn.focus(); }, 200);
+    },
+
+    close: function() {
+      this.panel.classList.remove('open');
+      this.overlay.classList.remove('open');
+      document.body.classList.remove('mrh-no-scroll');
+      this.toggleBtn.classList.remove('active');
+      this.isOpen = false;
+    }
+  };
+
+  /* ----------------------------------------------------------
      INIT: Alles starten wenn DOM bereit
      ---------------------------------------------------------- */
   function mrhInit() {
@@ -1320,6 +1574,7 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
     MRH.A11y.init();
     MRH.Performance.init();
     MRH.MegaMenu.init();
+    MRH.MobileMenu.init();
 
     // Suchleisten-Placeholder anpassen (Core liefert nur "Suchen")
     var searchInput = document.querySelector('#search input[type="text"], #search input[name="keywords"]');
@@ -1433,7 +1688,7 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
 
     // Debug-Info in Konsole (nur Entwicklung)
     if (window.location.hostname === 'localhost' || window.location.search.indexOf('debug=1') > -1) {
-      console.log('[MRH Core] v1.4.0 initialized (FA6 Brands Auto-Detect)', {
+      console.log('[MRH Core] v1.6.0 initialized (Vanilla Offcanvas Mobile Menu)', {
         modules: Object.keys(MRH).filter(function(k) { return typeof MRH[k] === 'object' && MRH[k].init; }),
         shippingThreshold: MRH.ShippingBar.threshold,
         dashboardConfig: window.MRH_MEGAMENU_CONFIG ? 'loaded (' + window.MRH_MEGAMENU_CONFIG.length + ' entries)' : 'not available'
@@ -1451,6 +1706,104 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
 })();
 </script>
 <style>
+/* v1.6.0 Offcanvas Mobile Menu */
+.mrh-mobile-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5); z-index: 99998;
+  opacity: 0; visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+}
+.mrh-mobile-overlay.open { opacity: 1; visibility: visible; }
+
+.mrh-mobile-panel {
+  position: fixed; top: 0; left: 0; width: 85%; max-width: 340px; height: 100%;
+  background: #fff; z-index: 99999;
+  transform: translateX(-105%);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 4px 0 24px rgba(0,0,0,0.15);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.mrh-mobile-panel.open { transform: translateX(0); }
+
+.mrh-mobile-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; background: #2d7a3a; color: #fff;
+  flex-shrink: 0;
+}
+.mrh-mobile-title {
+  font-size: 1.1rem; font-weight: 700; letter-spacing: 0.02em;
+}
+.mrh-mobile-close {
+  background: none; border: none; color: #fff; font-size: 1.4rem;
+  cursor: pointer; padding: 4px 8px; border-radius: 6px;
+  transition: background 0.2s;
+}
+.mrh-mobile-close:hover { background: rgba(255,255,255,0.15); }
+
+.mrh-mobile-body {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.mrh-mobile-nav {
+  list-style: none; margin: 0; padding: 0;
+}
+.mrh-mobile-item { border-bottom: 1px solid #f0f0f0; }
+
+.mrh-mobile-link-row {
+  display: flex; align-items: stretch;
+}
+.mrh-mobile-link-row .mrh-mobile-link {
+  flex: 1;
+}
+.mrh-mobile-link {
+  display: block; padding: 14px 20px;
+  color: #333; text-decoration: none; font-size: 0.95rem;
+  font-weight: 500; transition: background 0.15s, color 0.15s;
+}
+.mrh-mobile-link:hover, .mrh-mobile-link:focus {
+  background: #f5f9f5; color: #2d7a3a;
+}
+
+.mrh-mobile-toggle {
+  background: none; border: none; border-left: 1px solid #f0f0f0;
+  padding: 0 16px; cursor: pointer; color: #888;
+  transition: color 0.2s, transform 0.3s;
+  display: flex; align-items: center;
+}
+.mrh-mobile-toggle:hover { color: #2d7a3a; }
+.mrh-mobile-item.open > .mrh-mobile-link-row > .mrh-mobile-toggle,
+.mrh-mobile-l2.open > .mrh-mobile-link-row > .mrh-mobile-toggle {
+  color: #2d7a3a;
+}
+.mrh-mobile-item.open > .mrh-mobile-link-row > .mrh-mobile-toggle i,
+.mrh-mobile-l2.open > .mrh-mobile-link-row > .mrh-mobile-toggle i {
+  transform: rotate(180deg);
+}
+
+.mrh-mobile-sub {
+  list-style: none; margin: 0; padding: 0;
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #fafafa;
+}
+.mrh-mobile-item.open > .mrh-mobile-sub,
+.mrh-mobile-l2.open > .mrh-mobile-sub { max-height: 2000px; }
+
+.mrh-mobile-l2 .mrh-mobile-link {
+  padding-left: 36px; font-size: 0.9rem; font-weight: 400; color: #555;
+}
+.mrh-mobile-l3 .mrh-mobile-link {
+  padding-left: 52px; font-size: 0.85rem; font-weight: 400; color: #777;
+}
+.mrh-mobile-l3-sub { background: #f5f5f5; }
+
+/* Body scroll lock */
+body.mrh-no-scroll { overflow: hidden !important; }
+
 /* v1.3.0 Promo-Produkt Styles */
 .mrh-promo-product { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); }
 .mrh-promo-product:last-of-type { border-bottom: none; }
