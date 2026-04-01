@@ -8,9 +8,83 @@
 
    Wird automatisch über auto_include() in general_bottom.js.php
    geladen und bei COMPRESS_JAVASCRIPT komprimiert.
+
+   v1.2.0: Config wird direkt per PHP eingelesen (kein Timing-Problem)
    ============================================================ */
+
+// ---- Mega-Menu Config direkt einlesen (statt separate JS-Datei) ----
+// Damit ist die Variable GARANTIERT verfügbar bevor das Script läuft.
+$_mrh_megamenu_js = '';
+$_mrh_cache_file = DIR_FS_CATALOG . 'templates/' . CURRENT_TEMPLATE . '/config/megamenu_config.json';
+if (file_exists($_mrh_cache_file)) {
+    $_mrh_json_raw = file_get_contents($_mrh_cache_file);
+    $_mrh_cache = json_decode($_mrh_json_raw, true);
+    if (is_array($_mrh_cache) && !empty($_mrh_cache)) {
+        // Sprach-Mapping
+        $_mrh_lang_map = array(2 => 'de', 1 => 'en', 5 => 'fr', 7 => 'es');
+        $_mrh_active_lang = isset($_mrh_lang_map[(int)($_SESSION['languages_id'] ?? 2)])
+            ? $_mrh_lang_map[(int)($_SESSION['languages_id'] ?? 2)]
+            : 'de';
+
+        // Kategorien aufbereiten
+        $_mrh_entries = isset($_mrh_cache['categories']) ? $_mrh_cache['categories'] : array();
+        $_mrh_output = array();
+        foreach ($_mrh_entries as $_mrh_entry) {
+            if (!isset($_mrh_entry['columns']) || !is_array($_mrh_entry['columns'])) continue;
+            $_mrh_cols_out = array();
+            foreach ($_mrh_entry['columns'] as $_mrh_col) {
+                $_mrh_title = '';
+                if (isset($_mrh_col['titles'][$_mrh_active_lang]) && $_mrh_col['titles'][$_mrh_active_lang] !== '') {
+                    $_mrh_title = $_mrh_col['titles'][$_mrh_active_lang];
+                } elseif (isset($_mrh_col['titles']['de'])) {
+                    $_mrh_title = $_mrh_col['titles']['de'];
+                }
+                $_mrh_items_out = array();
+                if (isset($_mrh_col['items']) && is_array($_mrh_col['items'])) {
+                    foreach ($_mrh_col['items'] as $_mrh_item) {
+                        $_mrh_label = '';
+                        if (isset($_mrh_item['labels'][$_mrh_active_lang]) && $_mrh_item['labels'][$_mrh_active_lang] !== '') {
+                            $_mrh_label = $_mrh_item['labels'][$_mrh_active_lang];
+                        } elseif (isset($_mrh_item['labels']['de'])) {
+                            $_mrh_label = $_mrh_item['labels']['de'];
+                        }
+                        if ($_mrh_label === '') continue;
+                        $_mrh_items_out[] = array(
+                            'category_id' => (int)$_mrh_item['category_id'],
+                            'label'       => $_mrh_label,
+                            'url'         => isset($_mrh_item['url']) ? $_mrh_item['url'] : '',
+                        );
+                    }
+                }
+                if (empty($_mrh_items_out) && $_mrh_title === '') continue;
+                $_mrh_cols_out[] = array(
+                    'title' => $_mrh_title,
+                    'icon'  => isset($_mrh_col['icon']) ? $_mrh_col['icon'] : '',
+                    'items' => $_mrh_items_out,
+                );
+            }
+            if (empty($_mrh_cols_out)) continue;
+            $_mrh_pname = '';
+            if (isset($_mrh_entry['parent_names'][$_mrh_active_lang]) && $_mrh_entry['parent_names'][$_mrh_active_lang] !== '') {
+                $_mrh_pname = $_mrh_entry['parent_names'][$_mrh_active_lang];
+            } elseif (isset($_mrh_entry['parent_names']['de'])) {
+                $_mrh_pname = $_mrh_entry['parent_names']['de'];
+            }
+            $_mrh_output[] = array(
+                'parent_id'   => (int)$_mrh_entry['parent_id'],
+                'parent_name' => $_mrh_pname,
+                'columns'     => $_mrh_cols_out,
+            );
+        }
+        $_mrh_megamenu_js = json_encode($_mrh_output, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+}
 ?>
 <script>
+<?php if ($_mrh_megamenu_js): ?>
+/* MRH Mega-Menu Config (inline, v1.2.0) */
+window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
+<?php endif; ?>
 /* ============================================================
    MRH 2026 Core – v1.1.0
    Vanilla JS – kein jQuery!
