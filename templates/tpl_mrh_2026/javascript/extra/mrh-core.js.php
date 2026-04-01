@@ -635,8 +635,23 @@ window.MRH_MEGAMENU_CONFIG = <?php echo $_mrh_megamenu_js; ?>;
         this.bar.appendChild(fragment);
       }
 
-      // Original CatNavi verstecken
-      catWrap.style.display = 'none';
+      // Original CatNavi nur auf Desktop verstecken
+      // Auf Mobile bleibt sie sichtbar fuer das RevPlus Slide-In-Menue
+      if (window.innerWidth > 991) {
+        catWrap.style.display = 'none';
+      } else {
+        // Auf Mobile: CatNavi sichtbar lassen, aber Mega-Nav verstecken
+        catWrap.style.display = '';
+      }
+      // Bei Resize reagieren (Desktop <-> Mobile Wechsel)
+      var _catWrapRef = catWrap;
+      window.addEventListener('resize', function() {
+        if (window.innerWidth > 991) {
+          _catWrapRef.style.display = 'none';
+        } else {
+          _catWrapRef.style.display = '';
+        }
+      });
     },
 
     /**
