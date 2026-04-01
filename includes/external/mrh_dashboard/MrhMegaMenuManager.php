@@ -2,7 +2,7 @@
 /**
  * --------------------------------------------------------------
  * MrhMegaMenuManager
- * Version: 1.4.0
+ * Version: 1.5.0
  * --------------------------------------------------------------
  * Backend-Logik fuer den Mega-Menu Manager.
  * Liest Kategorien aus der modified eCommerce DB,
@@ -769,27 +769,41 @@ class MrhMegaMenuManager
                         $cpath  = $this->buildCPath($cat_id);
 
                         // Labels in allen Sprachen
+                        // v1.5.0 FIX: custom_label nur fuer DE verwenden,
+                        // andere Sprachen immer aus categories_description
                         $labels = array();
                         foreach ($this->lang_map as $lid => $lcode) {
                             $label_query = 'SELECT categories_name FROM ' . TABLE_CATEGORIES_DESCRIPTION . '
                                             WHERE categories_id = ' . $cat_id . '
                                               AND language_id = ' . (int)$lid;
                             $label_result = xtc_db_fetch_array(xtc_db_query($label_query));
-                            $labels[$lcode] = $item['custom_label'] ? $item['custom_label'] : ($label_result['categories_name'] ?? '');
+                            $db_label = $label_result['categories_name'] ?? '';
+
+                            // custom_label nur fuer Deutsch (lcode=de) verwenden
+                            if ($lcode === 'de' && !empty($item['custom_label'])) {
+                                $labels[$lcode] = $item['custom_label'];
+                            } else {
+                                $labels[$lcode] = $db_label;
+                            }
                         }
 
-                        // SEO-URL ermitteln: custom_url > clean_seo_url > cPath-Fallback
-                        $item_url = '';
+                        // v1.5.0: SEO-URLs pro Sprache ermitteln
+                        // custom_url > clean_seo_url (pro Sprache) > cPath-Fallback
+                        $urls = array();
                         if (!empty($item['custom_url'])) {
-                            $item_url = $item['custom_url'];
+                            // custom_url gilt fuer alle Sprachen
+                            foreach ($this->lang_map as $lid => $lcode) {
+                                $urls[$lcode] = $item['custom_url'];
+                            }
                         } else {
-                            // Versuche SEO-URL aus clean_seo_url Tabelle (aktive Sprache)
-                            $seo_url = $this->getSeoUrl($cat_id, $this->language_id);
-                            if ($seo_url) {
-                                $item_url = $seo_url;
-                            } else {
-                                // Fallback: cPath
-                                $item_url = 'index.php?cPath=' . $cpath;
+                            foreach ($this->lang_map as $lid => $lcode) {
+                                $seo_url = $this->getSeoUrl($cat_id, $lid);
+                                if ($seo_url) {
+                                    $urls[$lcode] = $seo_url;
+                                } else {
+                                    // Fallback: cPath
+                                    $urls[$lcode] = 'index.php?cPath=' . $cpath;
+                                }
                             }
                         }
 
@@ -797,7 +811,8 @@ class MrhMegaMenuManager
                             'category_id' => $cat_id,
                             'labels'      => $labels,
                             'cpath'       => $cpath,
-                            'url'         => $item_url,
+                            'urls'        => $urls,
+                            'url'         => $urls['de'] ?? ('index.php?cPath=' . $cpath),
                         );
                     }
 

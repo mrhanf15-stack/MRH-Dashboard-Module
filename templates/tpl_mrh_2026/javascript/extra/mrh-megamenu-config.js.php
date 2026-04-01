@@ -1,6 +1,6 @@
 <?php
 /* -----------------------------------------------------------------------------------------
-   $Id: mrh-megamenu-config.js.php 1.2.0 2026-03-31 Mr. Hanf $
+   $Id: mrh-megamenu-config.js.php 1.3.0 2026-03-31 Mr. Hanf $
 
    MRH Mega-Menu Config - Frontend JavaScript Output
    Autoinclude Hook: ~/templates/YOUR_TEMPLATE/javascript/extra/
@@ -85,11 +85,21 @@ foreach ($megamenu_entries as $entry) {
                 // Nur Items mit Label ausgeben
                 if ($label === '') continue;
 
+                // v1.3.0: Sprachspezifische URL aus 'urls' Feld waehlen
+                $item_url = '';
+                if (isset($item['urls'][$active_lang]) && $item['urls'][$active_lang] !== '') {
+                    $item_url = $item['urls'][$active_lang];
+                } elseif (isset($item['urls']['de'])) {
+                    $item_url = $item['urls']['de'];
+                } elseif (isset($item['url'])) {
+                    $item_url = $item['url'];
+                }
+
                 $items_out[] = array(
                     'category_id' => (int)$item['category_id'],
                     'label'       => $label,
                     'cpath'       => isset($item['cpath']) ? $item['cpath'] : '',
-                    'url'         => isset($item['url']) ? $item['url'] : '',
+                    'url'         => $item_url,
                 );
             }
         }
