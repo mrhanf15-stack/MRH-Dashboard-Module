@@ -1,50 +1,50 @@
 <?php
-/**
- * MRH Dashboard - English Language Constants
- * Autoinclude Hook: ~/lang/english/extra/admin/
- */
-defined('_VALID_XTC') or die('Direct Access to this location is not allowed.');
+/* -----------------------------------------------------------------------------------------
+   $Id: mrh_dashboard.php 1.2.0 2026-03-31 Mr. Hanf $
 
-// System Module Configuration
-define('MRH_DASHBOARD_TITLE', 'MRH Dashboard');
-define('MRH_DASHBOARD_DESC', 'Modular dashboard for Mr. Hanf template features. Manages mega menu, banners, promotions and more.');
-define('MRH_DASHBOARD_SORT_ORDER', 'Sort Order');
+   MRH Dashboard - English Language Constants
+   Autoinclude Hook: ~/lang/english/extra/admin/
+   -----------------------------------------------------------------------------------------
+   Released under the GNU General Public License
+   ---------------------------------------------------------------------------------------*/
+defined('_VALID_XTC') or die('Direct Access to this location is not allowed.');
 
 // Admin Menu
 define('BOX_MRH_DASHBOARD', 'MRH Dashboard');
 
-// Admin Page: General
-define('MRH_HEADING_TITLE', 'MRH Dashboard');
-define('MRH_HEADING_SUBTITLE', 'Modular Management for Mr. Hanf Template');
+// Admin Page: Header
+define('MRH_DASHBOARD_HEADING', 'MRH Dashboard');
+define('MRH_DASHBOARD_SUBTITLE', 'Modular management for Mr. Hanf template');
 
-// Admin Page: Mega Menu Manager
-define('MRH_MEGAMENU_TITLE', 'Mega Menu Manager');
-define('MRH_MEGAMENU_DESC', 'Configure the mega dropdown menus for the main navigation.');
-define('MRH_MEGAMENU_CATEGORY', 'Main Category');
-define('MRH_MEGAMENU_COLUMN', 'Column');
-define('MRH_MEGAMENU_COLUMN_TITLE', 'Column Title');
-define('MRH_MEGAMENU_COLUMN_ICON', 'Icon (Emoji/Unicode)');
-define('MRH_MEGAMENU_ITEMS', 'Subcategories');
-define('MRH_MEGAMENU_ADD_ITEM', 'Add Category');
-define('MRH_MEGAMENU_REMOVE_ITEM', 'Remove');
-define('MRH_MEGAMENU_SAVE_SUCCESS', 'Mega menu configuration saved successfully.');
-define('MRH_MEGAMENU_SAVE_ERROR', 'Error saving mega menu configuration.');
-define('MRH_MEGAMENU_NO_SUBCATS', 'No subcategories available.');
-define('MRH_MEGAMENU_SELECT_CATEGORY', '-- Select Category --');
-define('MRH_MEGAMENU_MAX_COLUMNS', 'Max. 3 columns per main category');
-define('MRH_MEGAMENU_MAX_ITEMS', 'Max. 5 items per column');
-define('MRH_MEGAMENU_SORT_HINT', 'Drag items to reorder.');
-define('MRH_MEGAMENU_ACTIVE', 'Active');
-define('MRH_MEGAMENU_INACTIVE', 'Inactive');
+// Mega-Menu Manager
+define('MRH_MEGAMENU_TITLE', 'Mega-Menu Manager');
+define('MRH_MEGAMENU_DESC', 'Configure mega dropdown menus for the main navigation.');
+define('MRH_MEGAMENU_SAVE_SUCCESS', 'Mega-menu configuration saved successfully.');
+define('MRH_MEGAMENU_SAVE_ERROR', 'Error saving mega-menu configuration.');
 
-// Admin Page: Buttons
+// Nav-Links
+define('MRH_NAVLINKS_TITLE', 'Additional Navigation Links');
+define('MRH_NAVLINKS_DESC', 'Manage additional links in the main navigation (Specials, New Products, Brands, Blog, etc.).');
+define('MRH_NAVLINKS_SAVE_SUCCESS', 'Nav links saved successfully.');
+define('MRH_NAVLINKS_SAVE_ERROR', 'Error saving nav links.');
+
+// Language File Editor
+define('MRH_LANGEDITOR_TITLE', 'Language File Editor');
+define('MRH_LANGEDITOR_DESC', 'Edit MRH_ language constants directly. Saved in lang/{language}/extra/admin/mrh_dashboard.php.');
+define('MRH_LANGEDITOR_SAVE_SUCCESS', 'Language constants saved successfully.');
+define('MRH_LANGEDITOR_SAVE_ERROR', 'Error saving. Check file permissions.');
+
+// Buttons
 define('MRH_BUTTON_SAVE', 'Save');
-define('MRH_BUTTON_CANCEL', 'Cancel');
 define('MRH_BUTTON_ADD_COLUMN', 'Add Column');
-define('MRH_BUTTON_REMOVE_COLUMN', 'Remove Column');
-define('MRH_BUTTON_RESET', 'Reset');
+define('MRH_BUTTON_ADD_LINK', 'Add Link');
+define('MRH_BUTTON_ADD_CONSTANT', 'Add Constant');
 
-// Admin Page: Status
-define('MRH_STATUS_ACTIVE', 'Module active');
-define('MRH_STATUS_INACTIVE', 'Module inactive');
-define('MRH_VERSION_LABEL', 'Version');
+// ============================================================
+// MRH_NAV Standard Constants for Navigation Links
+// ============================================================
+define('MRH_NAV_ANGEBOTE', 'Specials');
+define('MRH_NAV_NEUE_ARTIKEL', 'New Products');
+define('MRH_NAV_MARKEN', 'Brands');
+define('MRH_NAV_BLOG', 'Blog');
+define('MRH_NAV_SEEDFINDER', 'Seedfinder');

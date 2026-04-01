@@ -1,632 +1,698 @@
 <?php
-/**
- * --------------------------------------------------------------
- * File: mrh_dashboard.php
- * Version: 1.0.0
- * Date: 2026-03-31
- *
- * Author: Mr. Hanf Development Team
- * Copyright: (c) 2026 Mr. Hanf
- * Web: https://mr-hanf.at
- * --------------------------------------------------------------
- * MRH Dashboard - Admin-Seite
- * Modulare Verwaltung für Template-Funktionen
- * --------------------------------------------------------------
- * Released under the GNU General Public License
- * --------------------------------------------------------------
- */
+/* -----------------------------------------------------------------------------------------
+   $Id: mrh_dashboard.php 1.2.0 2026-03-31 Mr. Hanf $
+
+   MRH Dashboard - Admin-Seite
+   https://mr-hanf.at
+
+   Copyright (c) 2026 Mr. Hanf
+   -----------------------------------------------------------------------------------------
+   Released under the GNU General Public License
+   ---------------------------------------------------------------------------------------*/
 
 require('includes/application_top.php');
 
-// Sicherheitscheck: Modul muss aktiv sein
-if (!defined('MODULE_MRH_DASHBOARD_STATUS') || 'true' !== strtolower(MODULE_MRH_DASHBOARD_STATUS)) {
-    xtc_redirect(xtc_href_link(FILENAME_DEFAULT));
+// Pruefen ob Modul installiert
+if (!defined('MODULE_MRH_DASHBOARD_STATUS') || MODULE_MRH_DASHBOARD_STATUS !== 'true') {
+  xtc_redirect(xtc_href_link(FILENAME_MODULE_EXPORT, 'set=system'));
 }
 
-// Externe Klassen laden
-require_once(DIR_FS_CATALOG . 'includes/external/mrh_dashboard/MrhMegaMenuManager.php');
+// Mega-Menü Manager laden
+$manager_file = DIR_FS_CATALOG . 'includes/external/mrh_dashboard/MrhMegaMenuManager.php';
+if (file_exists($manager_file)) {
+  require_once($manager_file);
+  $megaMenuManager = new MrhMegaMenuManager();
+} else {
+  $megaMenuManager = null;
+}
 
-$megamenu = new MrhMegaMenuManager();
+// --- AJAX-Endpunkte ---
+if (isset($_GET['ajax'])) {
+  header('Content-Type: application/json; charset=utf-8');
 
-// ============================================================
-// POST-Verarbeitung: Mega-Menü Konfiguration speichern
-// ============================================================
-$message = '';
-$message_type = '';
+  // Kategorien laden
+  if ($_GET['ajax'] === 'get_categories') {
+    $parent_id = (int)$_GET['parent_id'];
+    $categories = $megaMenuManager ? $megaMenuManager->getAllSubcategories($parent_id) : array();
+    echo json_encode(array('success' => true, 'categories' => $categories));
+    exit;
+  }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+  // Konfiguration laden
+  if ($_GET['ajax'] === 'get_config') {
+    $parent_id = (int)$_GET['parent_id'];
+    $config = $megaMenuManager ? $megaMenuManager->getConfig($parent_id) : null;
+    echo json_encode(array('success' => true, 'config' => $config));
+    exit;
+  }
 
-    // CSRF-Token prüfen
-    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
-        $message = 'Ungültiger Sicherheits-Token. Bitte versuchen Sie es erneut.';
-        $message_type = 'error';
-    } else {
+  // Konfiguration speichern
+  if ($_GET['ajax'] === 'save_config') {
+    $input = json_decode(file_get_contents('php://input'), true);
+    $parent_id = (int)($input['parent_id'] ?? 0);
+    $columns   = $input['columns'] ?? array();
 
-        switch ($_POST['action']) {
+    $result = $megaMenuManager ? $megaMenuManager->saveConfig($parent_id, $columns) : false;
 
-            case 'save_megamenu':
-                $parent_id = (int)$_POST['parent_category_id'];
-                $columns   = $_POST['columns'] ?? [];
-
-                $success = $megamenu->saveConfig($parent_id, $columns);
-
-                if ($success) {
-                    // Frontend-Cache neu generieren
-                    $megamenu->regenerateCache();
-                    $message = defined('MRH_MEGAMENU_SAVE_SUCCESS') ? MRH_MEGAMENU_SAVE_SUCCESS : 'Konfiguration gespeichert.';
-                    $message_type = 'success';
-                } else {
-                    $message = defined('MRH_MEGAMENU_SAVE_ERROR') ? MRH_MEGAMENU_SAVE_ERROR : 'Fehler beim Speichern.';
-                    $message_type = 'error';
-                }
-                break;
-
-            case 'delete_megamenu':
-                $parent_id = (int)$_POST['parent_category_id'];
-                $megamenu->deleteConfig($parent_id);
-                $megamenu->regenerateCache();
-                $message = 'Konfiguration für diese Kategorie wurde gelöscht.';
-                $message_type = 'success';
-                break;
-        }
+    // Cache regenerieren
+    if ($result && $megaMenuManager) {
+      $megaMenuManager->regenerateCache();
     }
+
+    echo json_encode(array('success' => $result));
+    exit;
+  }
+
+  // Nav-Links laden
+  if ($_GET['ajax'] === 'get_navlinks') {
+    $links = $megaMenuManager ? $megaMenuManager->getNavLinks() : array();
+    echo json_encode(array('success' => true, 'links' => $links));
+    exit;
+  }
+
+  // Nav-Links speichern
+  if ($_GET['ajax'] === 'save_navlinks') {
+    $input = json_decode(file_get_contents('php://input'), true);
+    $links = $input['links'] ?? array();
+
+    $result = $megaMenuManager ? $megaMenuManager->saveNavLinks($links) : false;
+
+    // Cache regenerieren
+    if ($result && $megaMenuManager) {
+      $megaMenuManager->regenerateCache();
+    }
+
+    echo json_encode(array('success' => $result));
+    exit;
+  }
+
+  // Sprachkonstanten laden
+  if ($_GET['ajax'] === 'get_lang_constants') {
+    $lang_code = preg_replace('/[^a-z]/', '', $_GET['lang'] ?? 'de');
+    $constants = $megaMenuManager ? $megaMenuManager->readLangConstants($lang_code) : array();
+    echo json_encode(array('success' => true, 'constants' => $constants));
+    exit;
+  }
+
+  // Sprachkonstanten speichern
+  if ($_GET['ajax'] === 'save_lang_constants') {
+    $input = json_decode(file_get_contents('php://input'), true);
+    $lang_code  = preg_replace('/[^a-z]/', '', $input['lang'] ?? '');
+    $constants  = $input['constants'] ?? array();
+
+    $result = ($megaMenuManager && $lang_code) ? $megaMenuManager->writeLangConstants($lang_code, $constants) : false;
+
+    echo json_encode(array('success' => $result));
+    exit;
+  }
+
+  // Cache regenerieren
+  if ($_GET['ajax'] === 'regenerate_cache') {
+    $result = $megaMenuManager ? $megaMenuManager->regenerateCache() : false;
+    echo json_encode(array('success' => $result));
+    exit;
+  }
+
+  echo json_encode(array('success' => false, 'error' => 'Unknown action'));
+  exit;
 }
 
-// CSRF-Token generieren
-if (!isset($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
+// --- Daten fuer die Seite ---
+$mainCategories = $megaMenuManager ? $megaMenuManager->getMainCategories() : array();
+$availableLanguages = $megaMenuManager ? $megaMenuManager->getAvailableLanguages() : array();
+$navLinks = $megaMenuManager ? $megaMenuManager->getNavLinks() : array();
 
-// ============================================================
-// Daten für die Anzeige laden
-// ============================================================
-
-// Hauptkategorien mit Mega-Dropdown (haben Unterkategorien)
-$main_categories = $megamenu->getMainCategories();
-
-// Aktive Kategorie (Tab)
-$active_cat_id = isset($_GET['cat_id']) ? (int)$_GET['cat_id'] : 0;
-if ($active_cat_id === 0 && !empty($main_categories)) {
-    $active_cat_id = $main_categories[0]['categories_id'];
-}
-
-// Unterkategorien der aktiven Hauptkategorie (alle Level)
-$subcategories = $megamenu->getAllSubcategories($active_cat_id);
-
-// Gespeicherte Konfiguration für aktive Kategorie
-$saved_config = $megamenu->getConfig($active_cat_id);
-
-// ============================================================
-// HTML-Ausgabe
-// ============================================================
-require(DIR_WS_INCLUDES . 'head.php');
+// Sprachkonstanten
+$heading_title = defined('MRH_DASHBOARD_HEADING') ? MRH_DASHBOARD_HEADING : 'MRH Dashboard';
+$version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSION : '1.2.0';
 ?>
-<style>
-    /* MRH Dashboard Styles - Vanilla CSS, kein Framework-Overhead */
-    .mrh-dashboard { max-width: 1400px; margin: 0 auto; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-    .mrh-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid #e2e8f0; }
-    .mrh-header h1 { font-size: 24px; font-weight: 700; color: #1e293b; margin: 0; }
-    .mrh-header .mrh-version { font-size: 12px; color: #94a3b8; background: #f1f5f9; padding: 2px 8px; border-radius: 4px; }
-    .mrh-header .mrh-subtitle { font-size: 14px; color: #64748b; margin-top: 4px; }
-
-    /* Nachrichten */
-    .mrh-message { padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 14px; }
-    .mrh-message.success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
-    .mrh-message.error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
-
-    /* Tabs für Hauptkategorien */
-    .mrh-tabs { display: flex; gap: 4px; margin-bottom: 24px; flex-wrap: wrap; }
-    .mrh-tab { padding: 10px 20px; background: #f1f5f9; border: 1px solid #e2e8f0; border-bottom: none; border-radius: 8px 8px 0 0; cursor: pointer; font-size: 14px; font-weight: 500; color: #475569; text-decoration: none; transition: all 0.2s; }
-    .mrh-tab:hover { background: #e2e8f0; color: #1e293b; }
-    .mrh-tab.active { background: #fff; color: #4a8c2a; border-color: #4a8c2a; border-bottom: 2px solid #fff; font-weight: 600; position: relative; top: 1px; }
-
-    /* Spalten-Container */
-    .mrh-columns-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 24px; }
-    .mrh-column { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
-    .mrh-column-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #f1f5f9; }
-    .mrh-column-header .col-number { background: #4a8c2a; color: #fff; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
-    .mrh-column-header input { flex: 1; padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 14px; }
-    .mrh-column-header .remove-col { background: none; border: none; color: #ef4444; cursor: pointer; font-size: 18px; padding: 4px; }
-
-    /* Icon-Feld */
-    .mrh-icon-field { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
-    .mrh-icon-field label { font-size: 12px; color: #64748b; white-space: nowrap; }
-    .mrh-icon-field input { width: 60px; padding: 4px 8px; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 14px; text-align: center; }
-
-    /* Sortierbare Items */
-    .mrh-items-list { min-height: 40px; }
-    .mrh-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; margin-bottom: 4px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; cursor: grab; transition: all 0.15s; }
-    .mrh-item:hover { background: #f1f5f9; border-color: #cbd5e1; }
-    .mrh-item.dragging { opacity: 0.5; background: #dbeafe; }
-    .mrh-item .drag-handle { color: #94a3b8; cursor: grab; font-size: 16px; user-select: none; }
-    .mrh-item .item-label { flex: 1; font-size: 13px; color: #334155; }
-    .mrh-item .item-id { font-size: 11px; color: #94a3b8; }
-    .mrh-item .remove-item { background: none; border: none; color: #ef4444; cursor: pointer; font-size: 14px; padding: 2px; opacity: 0.6; }
-    .mrh-item .remove-item:hover { opacity: 1; }
-
-    /* Kategorie hinzufügen */
-    .mrh-add-item { margin-top: 8px; }
-    .mrh-add-item select { width: 100%; padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 13px; background: #fff; }
-
-    /* Buttons */
-    .mrh-actions { display: flex; gap: 12px; align-items: center; padding-top: 16px; border-top: 1px solid #e2e8f0; }
-    .mrh-btn { padding: 10px 24px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; }
-    .mrh-btn-primary { background: #4a8c2a; color: #fff; }
-    .mrh-btn-primary:hover { background: #3a7020; }
-    .mrh-btn-secondary { background: #f1f5f9; color: #475569; border-color: #e2e8f0; }
-    .mrh-btn-secondary:hover { background: #e2e8f0; }
-    .mrh-btn-danger { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
-    .mrh-btn-danger:hover { background: #fee2e2; }
-    .mrh-btn-sm { padding: 6px 12px; font-size: 12px; }
-
-    /* Info-Box */
-    .mrh-info { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 12px 16px; font-size: 13px; color: #1e40af; margin-bottom: 16px; }
-
-    /* Verfügbare Kategorien Sidebar */
-    .mrh-layout { display: grid; grid-template-columns: 1fr 280px; gap: 24px; }
-    .mrh-sidebar { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; height: fit-content; position: sticky; top: 20px; }
-    .mrh-sidebar h3 { font-size: 14px; font-weight: 600; color: #1e293b; margin: 0 0 12px; }
-    .mrh-sidebar .cat-item { padding: 6px 10px; font-size: 13px; color: #475569; border-radius: 4px; cursor: pointer; margin-bottom: 2px; transition: background 0.15s; display: flex; justify-content: space-between; align-items: center; }
-    .mrh-sidebar .cat-item:hover { background: #e2e8f0; }
-    .mrh-sidebar .cat-item.used { opacity: 0.4; text-decoration: line-through; cursor: not-allowed; }
-    .mrh-sidebar .cat-item .cat-id { font-size: 11px; color: #94a3b8; }
-    .mrh-sidebar .search-box { width: 100%; padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 13px; margin-bottom: 12px; }
-    .mrh-sidebar .cat-list { max-height: 400px; overflow-y: auto; }
-
-    /* Responsive */
-    @media (max-width: 1024px) {
-        .mrh-layout { grid-template-columns: 1fr; }
-        .mrh-sidebar { position: static; }
-    }
-</style>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><?php echo $heading_title; ?></title>
+  <?php echo '<link rel="stylesheet" href="includes/stylesheet.css">'; ?>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <style>
+    body { background: #f4f6f9; font-family: 'Segoe UI', Tahoma, sans-serif; }
+    .mrh-header { background: linear-gradient(135deg, #2d7a3a 0%, #1a5c28 100%); color: #fff; padding: 20px 30px; border-radius: 12px; margin-bottom: 25px; }
+    .mrh-header h1 { font-size: 1.5rem; margin: 0; font-weight: 600; }
+    .mrh-card { background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 20px; }
+    .mrh-card .card-header { background: #f8f9fa; border-bottom: 1px solid #e9ecef; padding: 12px 20px; font-weight: 600; border-radius: 10px 10px 0 0; }
+    .mrh-card .card-body { padding: 20px; }
+    .nav-tabs .nav-link { color: #555; font-weight: 500; }
+    .nav-tabs .nav-link.active { color: #2d7a3a; border-color: #2d7a3a #2d7a3a #fff; font-weight: 600; }
+    .column-card { border: 1px solid #dee2e6; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: #fafbfc; }
+    .column-card .column-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .icon-picker-modal .icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); gap: 4px; max-height: 300px; overflow-y: auto; }
+    .icon-picker-modal .icon-item { display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border: 1px solid #dee2e6; border-radius: 6px; cursor: pointer; transition: all 0.15s; }
+    .icon-picker-modal .icon-item:hover { background: #e8f5e9; border-color: #2d7a3a; }
+    .icon-picker-modal .icon-item.selected { background: #2d7a3a; color: #fff; border-color: #2d7a3a; }
+    .navlink-row { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; padding: 8px; background: #f8f9fa; border-radius: 6px; }
+    .navlink-row input { flex: 1; }
+    .lang-editor-row { display: flex; gap: 10px; align-items: center; margin-bottom: 6px; }
+    .lang-editor-row .const-key { font-family: monospace; font-size: 0.85rem; min-width: 220px; color: #6c757d; }
+    .lang-editor-row input { flex: 1; }
+    .sortable-ghost { opacity: 0.4; }
+    .drag-handle { cursor: grab; color: #aaa; }
+    .drag-handle:active { cursor: grabbing; }
+    .item-row { display: flex; align-items: center; gap: 8px; padding: 6px 8px; background: #fff; border: 1px solid #e9ecef; border-radius: 4px; margin-bottom: 4px; }
+    .item-row .item-label { flex: 1; font-size: 0.9rem; }
+    .item-row .btn-remove { color: #dc3545; cursor: pointer; border: none; background: none; }
+  </style>
 </head>
 <body>
-<!-- header //-->
-<?php require(DIR_WS_INCLUDES . 'header.php'); ?>
-<!-- header_eof //-->
-
-<!-- body //-->
-<div class="mrh-dashboard">
+  <div class="container-fluid" style="max-width: 1400px; padding: 20px;">
 
     <!-- Header -->
-    <div class="mrh-header">
-        <div>
-            <h1><?php echo defined('MRH_HEADING_TITLE') ? MRH_HEADING_TITLE : 'MRH Dashboard'; ?>
-                <span class="mrh-version">v<?php echo mrh_dashboard::VERSION; ?></span>
-            </h1>
-            <div class="mrh-subtitle"><?php echo defined('MRH_HEADING_SUBTITLE') ? MRH_HEADING_SUBTITLE : 'Modulare Verwaltung'; ?></div>
-        </div>
+    <div class="mrh-header d-flex justify-content-between align-items-center">
+      <div>
+        <h1><i class="fa fa-dashboard"></i> <?php echo $heading_title; ?></h1>
+        <small class="opacity-75">Modulares Dashboard fuer Template-Funktionen</small>
+      </div>
+      <div><span class="badge bg-light text-dark">v<?php echo htmlspecialchars($version); ?></span></div>
     </div>
 
-    <!-- Nachrichten -->
-    <?php if ($message): ?>
-        <div class="mrh-message <?php echo $message_type; ?>"><?php echo htmlspecialchars($message); ?></div>
-    <?php endif; ?>
+    <!-- Haupt-Tabs -->
+    <ul class="nav nav-tabs mb-3" id="mainTabs" role="tablist">
+      <li class="nav-item"><a class="nav-link active" id="megamenu-tab" data-bs-toggle="tab" href="#megamenu" role="tab"><i class="fa fa-bars"></i> Mega-Menü</a></li>
+      <li class="nav-item"><a class="nav-link" id="navlinks-tab" data-bs-toggle="tab" href="#navlinks" role="tab"><i class="fa fa-link"></i> Nav-Links</a></li>
+      <li class="nav-item"><a class="nav-link" id="langeditor-tab" data-bs-toggle="tab" href="#langeditor" role="tab"><i class="fa fa-language"></i> Sprachdatei-Editor</a></li>
+    </ul>
 
-    <!-- Mega-Menü Manager -->
-    <h2 style="font-size: 18px; font-weight: 600; color: #1e293b; margin-bottom: 16px;">
-        <?php echo defined('MRH_MEGAMENU_TITLE') ? MRH_MEGAMENU_TITLE : 'Mega-Menü Manager'; ?>
-    </h2>
+    <div class="tab-content">
 
-    <div class="mrh-info">
-        <?php echo defined('MRH_MEGAMENU_DESC') ? MRH_MEGAMENU_DESC : 'Konfigurieren Sie die Mega-Dropdown-Menüs.'; ?>
-        <br><strong><?php echo defined('MRH_MEGAMENU_MAX_COLUMNS') ? MRH_MEGAMENU_MAX_COLUMNS : 'Max. 3 Spalten'; ?></strong>
-        &middot; <strong><?php echo defined('MRH_MEGAMENU_MAX_ITEMS') ? MRH_MEGAMENU_MAX_ITEMS : 'Max. 5 Einträge pro Spalte'; ?></strong>
-    </div>
-
-    <!-- Tabs: Hauptkategorien -->
-    <div class="mrh-tabs">
-        <?php foreach ($main_categories as $cat): ?>
-            <a href="<?php echo xtc_href_link('mrh_dashboard.php', 'cat_id=' . $cat['categories_id']); ?>"
-               class="mrh-tab <?php echo ($cat['categories_id'] == $active_cat_id) ? 'active' : ''; ?>">
-                <?php echo htmlspecialchars($cat['categories_name']); ?>
-                <?php if ($megamenu->hasConfig($cat['categories_id'])): ?>
-                    <span style="color: #4a8c2a; margin-left: 4px;">&#10003;</span>
-                <?php endif; ?>
-            </a>
-        <?php endforeach; ?>
-    </div>
-
-    <?php if ($active_cat_id > 0): ?>
-
-    <form method="post" action="<?php echo xtc_href_link('mrh_dashboard.php', 'cat_id=' . $active_cat_id); ?>" id="megamenu-form">
-        <input type="hidden" name="action" value="save_megamenu">
-        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-        <input type="hidden" name="parent_category_id" value="<?php echo $active_cat_id; ?>">
-
-        <div class="mrh-layout">
-            <!-- Hauptbereich: Spalten -->
-            <div class="mrh-main">
-                <div class="mrh-columns-container" id="columns-container">
-                    <?php
-                    // Gespeicherte Spalten anzeigen oder leere Vorlage
-                    $columns = $saved_config ?: [
-                        ['title' => '', 'icon' => '', 'items' => []],
-                    ];
-                    foreach ($columns as $col_idx => $column):
-                    ?>
-                    <div class="mrh-column" data-col-index="<?php echo $col_idx; ?>">
-                        <div class="mrh-column-header">
-                            <span class="col-number"><?php echo $col_idx + 1; ?></span>
-                            <input type="text"
-                                   name="columns[<?php echo $col_idx; ?>][title]"
-                                   value="<?php echo htmlspecialchars($column['title']); ?>"
-                                   placeholder="<?php echo defined('MRH_MEGAMENU_COLUMN_TITLE') ? MRH_MEGAMENU_COLUMN_TITLE : 'Spaltenüberschrift'; ?>">
-                            <button type="button" class="remove-col" onclick="removeColumn(this)" title="<?php echo defined('MRH_BUTTON_REMOVE_COLUMN') ? MRH_BUTTON_REMOVE_COLUMN : 'Entfernen'; ?>">&times;</button>
-                        </div>
-                        <div class="mrh-icon-field">
-                            <label><?php echo defined('MRH_MEGAMENU_COLUMN_ICON') ? MRH_MEGAMENU_COLUMN_ICON : 'Icon'; ?>:</label>
-                            <input type="text"
-                                   name="columns[<?php echo $col_idx; ?>][icon]"
-                                   value="<?php echo htmlspecialchars($column['icon']); ?>"
-                                   placeholder="&#x1F331;">
-                        </div>
-                        <div class="mrh-items-list" id="items-list-<?php echo $col_idx; ?>" data-col="<?php echo $col_idx; ?>">
-                            <?php foreach ($column['items'] as $item_idx => $item): ?>
-                            <div class="mrh-item" draggable="true" data-cat-id="<?php echo $item['category_id']; ?>">
-                                <span class="drag-handle">&#x2630;</span>
-                                <span class="item-label"><?php echo htmlspecialchars($item['label']); ?></span>
-                                <span class="item-id">ID: <?php echo $item['category_id']; ?></span>
-                                <input type="hidden" name="columns[<?php echo $col_idx; ?>][items][<?php echo $item_idx; ?>][category_id]" value="<?php echo $item['category_id']; ?>">
-                                <input type="hidden" name="columns[<?php echo $col_idx; ?>][items][<?php echo $item_idx; ?>][label]" value="<?php echo htmlspecialchars($item['label']); ?>">
-                                <button type="button" class="remove-item" onclick="removeItem(this)">&times;</button>
-                            </div>
-                            <?php endforeach; ?>
-                        </div>
-                        <div class="mrh-add-item">
-                            <select onchange="addItemFromSelect(this, <?php echo $col_idx; ?>)">
-                                <option value=""><?php echo defined('MRH_MEGAMENU_SELECT_CATEGORY') ? MRH_MEGAMENU_SELECT_CATEGORY : '-- Kategorie wählen --'; ?></option>
-                                <?php foreach ($subcategories as $sub): ?>
-                                <option value="<?php echo $sub['categories_id']; ?>" data-label="<?php echo htmlspecialchars($sub['categories_name']); ?>">
-                                    <?php echo str_repeat('&nbsp;&nbsp;', $sub['level']); ?><?php echo htmlspecialchars($sub['categories_name']); ?> (ID: <?php echo $sub['categories_id']; ?>)
-                                </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                    </div>
-                    <?php endforeach; ?>
+      <!-- TAB 1: Mega-Menü Manager -->
+      <div class="tab-pane fade show active" id="megamenu" role="tabpanel">
+        <div class="row">
+          <div class="col-md-3">
+            <div class="mrh-card">
+              <div class="card-header"><i class="fa fa-sitemap"></i> Hauptkategorien</div>
+              <div class="card-body p-0">
+                <div class="list-group list-group-flush" id="categoryList">
+                  <?php foreach ($mainCategories as $cat): ?>
+                    <?php $hasConfig = $megaMenuManager ? $megaMenuManager->hasConfig($cat['categories_id']) : false; ?>
+                    <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center category-item"
+                       data-id="<?php echo (int)$cat['categories_id']; ?>"
+                       data-name="<?php echo htmlspecialchars($cat['categories_name']); ?>">
+                      <?php echo htmlspecialchars($cat['categories_name']); ?>
+                      <?php if ($hasConfig): ?>
+                        <span class="badge bg-success rounded-pill"><i class="fa fa-check"></i></span>
+                      <?php else: ?>
+                        <span class="badge bg-secondary rounded-pill"><i class="fa fa-minus"></i></span>
+                      <?php endif; ?>
+                    </a>
+                  <?php endforeach; ?>
                 </div>
-
-                <!-- Spalte hinzufügen -->
-                <div style="margin-bottom: 16px;">
-                    <button type="button" class="mrh-btn mrh-btn-secondary mrh-btn-sm" onclick="addColumn()" id="add-column-btn">
-                        + <?php echo defined('MRH_BUTTON_ADD_COLUMN') ? MRH_BUTTON_ADD_COLUMN : 'Spalte hinzufügen'; ?>
-                    </button>
-                </div>
-
-                <!-- Actions -->
-                <div class="mrh-actions">
-                    <button type="submit" class="mrh-btn mrh-btn-primary">
-                        <?php echo defined('MRH_BUTTON_SAVE') ? MRH_BUTTON_SAVE : 'Speichern'; ?>
-                    </button>
-                    <button type="button" class="mrh-btn mrh-btn-danger" onclick="deleteMegamenuConfig()">
-                        <?php echo defined('MRH_BUTTON_RESET') ? MRH_BUTTON_RESET : 'Zurücksetzen'; ?>
-                    </button>
-                </div>
+              </div>
             </div>
-
-            <!-- Sidebar: Verfügbare Kategorien -->
-            <div class="mrh-sidebar">
-                <h3>Verfügbare Kategorien</h3>
-                <input type="text" class="search-box" placeholder="Suchen..." oninput="filterCategories(this.value)">
-                <div class="cat-list" id="available-categories">
-                    <?php foreach ($subcategories as $sub): ?>
-                    <div class="cat-item" data-cat-id="<?php echo $sub['categories_id']; ?>" data-label="<?php echo htmlspecialchars($sub['categories_name']); ?>" onclick="addItemFromSidebar(this)">
-                        <span><?php echo str_repeat('&middot; ', $sub['level']); ?><?php echo htmlspecialchars($sub['categories_name']); ?></span>
-                        <span class="cat-id"><?php echo $sub['categories_id']; ?></span>
-                    </div>
-                    <?php endforeach; ?>
-                </div>
+            <div class="mrh-card">
+              <div class="card-body text-center">
+                <button class="btn btn-success btn-sm" id="btnRegenerateCache"><i class="fa fa-refresh"></i> Cache regenerieren</button>
+              </div>
             </div>
+          </div>
+
+          <div class="col-md-9">
+            <div class="mrh-card">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <span id="editorTitle"><i class="fa fa-hand-pointer-o"></i> Kategorie auswählen...</span>
+                <div>
+                  <button class="btn btn-primary btn-sm" id="btnAddColumn" style="display:none;"><i class="fa fa-plus"></i> Spalte</button>
+                  <button class="btn btn-success btn-sm" id="btnSaveConfig" style="display:none;"><i class="fa fa-save"></i> Speichern</button>
+                </div>
+              </div>
+              <div class="card-body" id="editorArea">
+                <div class="text-center text-muted py-5">
+                  <i class="fa fa-arrow-left fa-2x mb-3 d-block"></i>
+                  <p>Wähle eine Hauptkategorie aus der linken Liste.</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-    </form>
+      </div>
 
-    <!-- Lösch-Formular (separates Form) -->
-    <form method="post" action="<?php echo xtc_href_link('mrh_dashboard.php', 'cat_id=' . $active_cat_id); ?>" id="delete-form" style="display:none;">
-        <input type="hidden" name="action" value="delete_megamenu">
-        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-        <input type="hidden" name="parent_category_id" value="<?php echo $active_cat_id; ?>">
-    </form>
+      <!-- TAB 2: Nav-Links -->
+      <div class="tab-pane fade" id="navlinks" role="tabpanel">
+        <div class="mrh-card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="fa fa-link"></i> Zusätzliche Navigationslinks</span>
+            <div>
+              <button class="btn btn-primary btn-sm" id="btnAddNavLink"><i class="fa fa-plus"></i> Link</button>
+              <button class="btn btn-success btn-sm" id="btnSaveNavLinks"><i class="fa fa-save"></i> Speichern</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="alert alert-info small mb-3">
+              <i class="fa fa-info-circle"></i>
+              <strong>Syntax:</strong> URL + Linkname. Für <strong>Mehrsprachigkeit</strong> verwende als Name eine Konstante mit Prefix <code>MRH_</code> (z.B. <code>MRH_NAV_ANGEBOTE</code>).
+              Die Konstante wird im <strong>Sprachdatei-Editor</strong> pro Sprache definiert.
+              <br><strong>Beispiel:</strong> <code>specials.php</code> | <code>MRH_NAV_ANGEBOTE</code>
+            </div>
+            <div id="navLinksList"></div>
+          </div>
+        </div>
+      </div>
 
-    <?php endif; ?>
+      <!-- TAB 3: Sprachdatei-Editor -->
+      <div class="tab-pane fade" id="langeditor" role="tabpanel">
+        <div class="mrh-card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="fa fa-language"></i> MRH Sprachkonstanten</span>
+            <div>
+              <button class="btn btn-primary btn-sm" id="btnAddConstant"><i class="fa fa-plus"></i> Konstante</button>
+              <button class="btn btn-success btn-sm" id="btnSaveLangConstants"><i class="fa fa-save"></i> Speichern</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="alert alert-info small mb-3">
+              <i class="fa fa-info-circle"></i>
+              <code>MRH_</code>-Sprachkonstanten bearbeiten. Gespeichert in <code>lang/{sprache}/extra/admin/mrh_dashboard.php</code>.
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-bold">Sprache:</label>
+              <div class="btn-group" role="group">
+                <?php foreach ($availableLanguages as $code => $name): ?>
+                  <button type="button" class="btn btn-outline-success btn-sm lang-select-btn <?php echo ($code === 'de') ? 'active' : ''; ?>" data-lang="<?php echo $code; ?>"><?php echo htmlspecialchars($name); ?></button>
+                <?php endforeach; ?>
+              </div>
+            </div>
+            <div id="langConstantsList"></div>
+          </div>
+        </div>
+      </div>
 
-</div>
+    </div>
+  </div>
 
-<!-- Vanilla JS: Drag & Drop, Spalten-Verwaltung -->
-<script>
-(function() {
+  <!-- Icon-Picker Modal -->
+  <div class="modal fade icon-picker-modal" id="iconPickerModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="fa fa-th"></i> Icon auswählen</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="text" class="form-control mb-3" id="iconSearchInput" placeholder="Icon suchen... (z.B. leaf, star, home)">
+          <div class="icon-grid" id="iconGrid"></div>
+        </div>
+        <div class="modal-footer">
+          <span class="me-auto" id="iconPreview"><i class="fa fa-question fa-2x"></i> <span class="ms-2 text-muted">Kein Icon</span></span>
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Abbrechen</button>
+          <button type="button" class="btn btn-success btn-sm" id="btnConfirmIcon">Übernehmen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+  <script>
+  (function() {
     'use strict';
 
-    const MAX_COLUMNS = 3;
-    const MAX_ITEMS_PER_COLUMN = 5;
-    let colCount = document.querySelectorAll('.mrh-column').length;
+    var currentParentId = null;
+    var currentColumns = [];
+    var currentNavLinks = [];
+    var currentLangCode = 'de';
+    var currentLangConstants = {};
+    var iconPickerCallback = null;
+    var selectedIcon = '';
+    var iconModal = null;
+    var AJAX_URL = 'mrh_dashboard.php';
 
-    // Subcategories Daten für JS
-    const subcategories = <?php echo json_encode(array_map(function($s) {
-        return ['id' => $s['categories_id'], 'name' => $s['categories_name'], 'level' => $s['level']];
-    }, $subcategories)); ?>;
+    var FA_ICONS = [
+      'fa-home','fa-bars','fa-search','fa-star','fa-star-o','fa-heart','fa-heart-o',
+      'fa-user','fa-users','fa-cog','fa-cogs','fa-wrench','fa-shopping-cart','fa-shopping-bag',
+      'fa-tag','fa-tags','fa-bookmark','fa-flag','fa-leaf','fa-tree','fa-pagelines',
+      'fa-envira','fa-diamond','fa-cloud','fa-sun-o','fa-moon-o','fa-bolt','fa-fire',
+      'fa-tint','fa-gift','fa-trophy','fa-certificate','fa-shield','fa-rocket',
+      'fa-truck','fa-music','fa-film','fa-camera','fa-image','fa-phone','fa-envelope',
+      'fa-comment','fa-comments','fa-bell','fa-info-circle','fa-question-circle',
+      'fa-exclamation-circle','fa-check-circle','fa-plus','fa-minus','fa-times','fa-check',
+      'fa-pencil','fa-edit','fa-trash','fa-download','fa-upload','fa-share','fa-link',
+      'fa-external-link','fa-globe','fa-map-marker','fa-map','fa-compass',
+      'fa-book','fa-newspaper-o','fa-file','fa-folder','fa-calendar','fa-clock-o',
+      'fa-lock','fa-unlock','fa-key','fa-eye','fa-thumbs-up','fa-thumbs-down',
+      'fa-arrow-right','fa-arrow-left','fa-chevron-right','fa-chevron-left',
+      'fa-sort','fa-filter','fa-list','fa-th','fa-table','fa-database','fa-code',
+      'fa-paint-brush','fa-magic','fa-flask','fa-lightbulb-o','fa-plug',
+      'fa-wifi','fa-facebook','fa-twitter','fa-instagram','fa-youtube','fa-pinterest',
+      'fa-whatsapp','fa-telegram','fa-linkedin','fa-cc-visa','fa-cc-mastercard','fa-cc-paypal',
+      'fa-eur','fa-usd','fa-percent','fa-bar-chart','fa-line-chart','fa-pie-chart',
+      'fa-smile-o','fa-coffee','fa-beer','fa-paw','fa-bug','fa-cube','fa-cubes',
+      'fa-gamepad','fa-headphones','fa-medkit','fa-graduation-cap','fa-industry',
+      'fa-building','fa-anchor','fa-umbrella','fa-recycle','fa-language','fa-sitemap',
+      'fa-dashboard','fa-tachometer','fa-spinner','fa-refresh','fa-repeat','fa-undo',
+      'fa-expand','fa-crop','fa-scissors','fa-copy','fa-save','fa-print','fa-rss',
+      'fa-bullhorn','fa-cannabis'
+    ];
 
-    // ============================================================
-    // Spalten-Verwaltung
-    // ============================================================
-    window.addColumn = function() {
-        if (colCount >= MAX_COLUMNS) {
-            alert('Maximal ' + MAX_COLUMNS + ' Spalten erlaubt.');
-            return;
+    // Hilfsfunktionen
+    function ajax(action, params, callback) {
+      var url = AJAX_URL + '?ajax=' + action;
+      var opts = { method: 'GET' };
+
+      if (params && params._body) {
+        opts.method = 'POST';
+        opts.headers = { 'Content-Type': 'application/json' };
+        opts.body = JSON.stringify(params._body);
+      } else if (params) {
+        for (var key in params) {
+          if (key !== '_body') url += '&' + key + '=' + encodeURIComponent(params[key]);
         }
+      }
 
-        const container = document.getElementById('columns-container');
-        const colIdx = colCount;
-
-        const colHtml = `
-            <div class="mrh-column" data-col-index="${colIdx}">
-                <div class="mrh-column-header">
-                    <span class="col-number">${colIdx + 1}</span>
-                    <input type="text" name="columns[${colIdx}][title]" value="" placeholder="Spaltenüberschrift">
-                    <button type="button" class="remove-col" onclick="removeColumn(this)" title="Entfernen">&times;</button>
-                </div>
-                <div class="mrh-icon-field">
-                    <label>Icon:</label>
-                    <input type="text" name="columns[${colIdx}][icon]" value="" placeholder="&#x1F331;">
-                </div>
-                <div class="mrh-items-list" id="items-list-${colIdx}" data-col="${colIdx}"></div>
-                <div class="mrh-add-item">
-                    <select onchange="addItemFromSelect(this, ${colIdx})">
-                        <option value="">-- Kategorie wählen --</option>
-                        ${subcategories.map(s =>
-                            `<option value="${s.id}" data-label="${s.name}">${'&nbsp;&nbsp;'.repeat(s.level)}${s.name} (ID: ${s.id})</option>`
-                        ).join('')}
-                    </select>
-                </div>
-            </div>
-        `;
-
-        container.insertAdjacentHTML('beforeend', colHtml);
-        colCount++;
-        updateColumnNumbers();
-        initDragDrop();
-        toggleAddColumnBtn();
-    };
-
-    window.removeColumn = function(btn) {
-        if (!confirm('Spalte wirklich entfernen?')) return;
-        btn.closest('.mrh-column').remove();
-        colCount--;
-        updateColumnNumbers();
-        updateUsedCategories();
-        toggleAddColumnBtn();
-    };
-
-    function updateColumnNumbers() {
-        document.querySelectorAll('.mrh-column').forEach((col, idx) => {
-            col.dataset.colIndex = idx;
-            col.querySelector('.col-number').textContent = idx + 1;
-
-            // Input-Names aktualisieren
-            col.querySelectorAll('[name]').forEach(input => {
-                input.name = input.name.replace(/columns\[\d+\]/, `columns[${idx}]`);
-            });
-
-            const itemsList = col.querySelector('.mrh-items-list');
-            if (itemsList) {
-                itemsList.id = `items-list-${idx}`;
-                itemsList.dataset.col = idx;
-            }
-
-            const select = col.querySelector('.mrh-add-item select');
-            if (select) {
-                select.setAttribute('onchange', `addItemFromSelect(this, ${idx})`);
-            }
-        });
+      fetch(url, opts)
+        .then(function(r) { return r.json(); })
+        .then(function(data) { callback(data); })
+        .catch(function(err) { console.error('AJAX Error:', err); showToast('Serverfehler', 'error'); });
     }
 
-    function toggleAddColumnBtn() {
-        const btn = document.getElementById('add-column-btn');
-        if (btn) {
-            btn.disabled = colCount >= MAX_COLUMNS;
-            btn.style.opacity = colCount >= MAX_COLUMNS ? '0.4' : '1';
-        }
+    function showToast(msg, type) {
+      var t = document.createElement('div');
+      t.className = 'position-fixed top-0 end-0 m-3 p-3 rounded shadow text-white';
+      t.style.cssText = 'z-index:9999;background:' + (type === 'success' ? '#2d7a3a' : '#dc3545') + ';transition:opacity 0.3s;';
+      t.innerHTML = '<i class="fa ' + (type === 'success' ? 'fa-check' : 'fa-times') + '"></i> ' + msg;
+      document.body.appendChild(t);
+      setTimeout(function() { t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 300); }, 2500);
     }
 
-    // ============================================================
-    // Items hinzufügen/entfernen
-    // ============================================================
-    window.addItemFromSelect = function(select, colIdx) {
-        const catId = select.value;
-        if (!catId) return;
-
-        const label = select.options[select.selectedIndex].dataset.label;
-        addItem(colIdx, catId, label);
-        select.value = '';
-    };
-
-    window.addItemFromSidebar = function(el) {
-        if (el.classList.contains('used')) return;
-
-        const catId = el.dataset.catId;
-        const label = el.dataset.label;
-
-        // In die erste Spalte mit Platz einfügen
-        const columns = document.querySelectorAll('.mrh-items-list');
-        for (const list of columns) {
-            if (list.children.length < MAX_ITEMS_PER_COLUMN) {
-                const colIdx = parseInt(list.dataset.col);
-                addItem(colIdx, catId, label);
-                return;
-            }
-        }
-        alert('Alle Spalten sind voll (max. ' + MAX_ITEMS_PER_COLUMN + ' Einträge).');
-    };
-
-    function addItem(colIdx, catId, label) {
-        const list = document.getElementById(`items-list-${colIdx}`);
-        if (!list) return;
-
-        if (list.children.length >= MAX_ITEMS_PER_COLUMN) {
-            alert('Maximal ' + MAX_ITEMS_PER_COLUMN + ' Einträge pro Spalte.');
-            return;
-        }
-
-        // Prüfen ob schon in einer Spalte vorhanden
-        if (document.querySelector(`.mrh-item[data-cat-id="${catId}"]`)) {
-            alert('Diese Kategorie ist bereits zugeordnet.');
-            return;
-        }
-
-        const itemIdx = list.children.length;
-        const itemHtml = `
-            <div class="mrh-item" draggable="true" data-cat-id="${catId}">
-                <span class="drag-handle">&#x2630;</span>
-                <span class="item-label">${label}</span>
-                <span class="item-id">ID: ${catId}</span>
-                <input type="hidden" name="columns[${colIdx}][items][${itemIdx}][category_id]" value="${catId}">
-                <input type="hidden" name="columns[${colIdx}][items][${itemIdx}][label]" value="${label}">
-                <button type="button" class="remove-item" onclick="removeItem(this)">&times;</button>
-            </div>
-        `;
-
-        list.insertAdjacentHTML('beforeend', itemHtml);
-        updateUsedCategories();
-        initDragDrop();
-        renumberItems(list);
-    }
-
-    window.removeItem = function(btn) {
-        const list = btn.closest('.mrh-items-list');
-        btn.closest('.mrh-item').remove();
-        updateUsedCategories();
-        renumberItems(list);
-    };
-
-    function renumberItems(list) {
-        const colIdx = list.dataset.col;
-        list.querySelectorAll('.mrh-item').forEach((item, idx) => {
-            item.querySelectorAll('input[type="hidden"]').forEach(input => {
-                input.name = input.name.replace(
-                    /columns\[\d+\]\[items\]\[\d+\]/,
-                    `columns[${colIdx}][items][${idx}]`
-                );
-            });
-        });
-    }
+    function escapeHtml(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML.replace(/"/g, '&quot;'); }
 
     // ============================================================
-    // Verwendete Kategorien markieren
+    // MEGA-MENÜ
     // ============================================================
-    function updateUsedCategories() {
-        const usedIds = new Set();
-        document.querySelectorAll('.mrh-item[data-cat-id]').forEach(item => {
-            usedIds.add(item.dataset.catId);
-        });
-
-        document.querySelectorAll('#available-categories .cat-item').forEach(el => {
-            el.classList.toggle('used', usedIds.has(el.dataset.catId));
-        });
-    }
-
-    // ============================================================
-    // Sidebar-Suche
-    // ============================================================
-    window.filterCategories = function(query) {
-        const lower = query.toLowerCase();
-        document.querySelectorAll('#available-categories .cat-item').forEach(el => {
-            const text = el.textContent.toLowerCase();
-            el.style.display = text.includes(lower) ? '' : 'none';
-        });
-    };
-
-    // ============================================================
-    // Drag & Drop (Vanilla JS)
-    // ============================================================
-    let draggedItem = null;
-
-    function initDragDrop() {
-        document.querySelectorAll('.mrh-item[draggable="true"]').forEach(item => {
-            item.removeEventListener('dragstart', onDragStart);
-            item.removeEventListener('dragend', onDragEnd);
-            item.addEventListener('dragstart', onDragStart);
-            item.addEventListener('dragend', onDragEnd);
-        });
-
-        document.querySelectorAll('.mrh-items-list').forEach(list => {
-            list.removeEventListener('dragover', onDragOver);
-            list.removeEventListener('drop', onDrop);
-            list.addEventListener('dragover', onDragOver);
-            list.addEventListener('drop', onDrop);
-        });
-    }
-
-    function onDragStart(e) {
-        draggedItem = this;
-        this.classList.add('dragging');
-        e.dataTransfer.effectAllowed = 'move';
-    }
-
-    function onDragEnd() {
-        this.classList.remove('dragging');
-        draggedItem = null;
-        // Alle Listen neu nummerieren
-        document.querySelectorAll('.mrh-items-list').forEach(list => renumberItems(list));
-    }
-
-    function onDragOver(e) {
+    document.querySelectorAll('.category-item').forEach(function(el) {
+      el.addEventListener('click', function(e) {
         e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
+        document.querySelectorAll('.category-item').forEach(function(x) { x.classList.remove('active'); });
+        this.classList.add('active');
+        currentParentId = parseInt(this.dataset.id);
+        document.getElementById('editorTitle').innerHTML = '<i class="fa fa-edit"></i> ' + this.dataset.name + ' <small class="text-muted">(ID: ' + currentParentId + ')</small>';
+        document.getElementById('btnAddColumn').style.display = '';
+        document.getElementById('btnSaveConfig').style.display = '';
+        loadConfig(currentParentId);
+      });
+    });
 
-        const list = this;
-        if (list.children.length >= MAX_ITEMS_PER_COLUMN && !list.contains(draggedItem)) {
-            return; // Spalte ist voll
-        }
-
-        const afterElement = getDragAfterElement(list, e.clientY);
-        if (afterElement) {
-            list.insertBefore(draggedItem, afterElement);
-        } else {
-            list.appendChild(draggedItem);
-        }
+    function loadConfig(pid) {
+      document.getElementById('editorArea').innerHTML = '<div class="text-center py-4"><i class="fa fa-spinner fa-spin fa-2x"></i></div>';
+      ajax('get_config', { parent_id: pid }, function(data) {
+        currentColumns = data.config || [];
+        renderColumns();
+      });
     }
 
-    function onDrop(e) {
-        e.preventDefault();
-        updateUsedCategories();
-    }
+    function renderColumns() {
+      var area = document.getElementById('editorArea');
+      if (currentColumns.length === 0) {
+        area.innerHTML = '<div class="text-center text-muted py-4"><p>Keine Spalten. Klicke "Spalte" um zu beginnen.</p></div>';
+        return;
+      }
 
-    function getDragAfterElement(container, y) {
-        const elements = [...container.querySelectorAll('.mrh-item:not(.dragging)')];
-        return elements.reduce((closest, child) => {
-            const box = child.getBoundingClientRect();
-            const offset = y - box.top - box.height / 2;
-            if (offset < 0 && offset > closest.offset) {
-                return { offset, element: child };
-            }
-            return closest;
-        }, { offset: Number.NEGATIVE_INFINITY }).element;
-    }
+      var html = '<div id="columnsContainer">';
+      currentColumns.forEach(function(col, idx) {
+        html += '<div class="column-card" data-index="' + idx + '">';
+        html += '<div class="column-header"><div class="d-flex align-items-center gap-2"><span class="drag-handle"><i class="fa fa-bars"></i></span><h6 class="mb-0">Spalte ' + (idx + 1) + '</h6></div>';
+        html += '<button class="btn btn-outline-danger btn-sm" onclick="removeColumn(' + idx + ')"><i class="fa fa-trash"></i></button></div>';
 
-    // ============================================================
-    // Löschen
-    // ============================================================
-    window.deleteMegamenuConfig = function() {
-        if (confirm('Konfiguration für diese Kategorie wirklich löschen?')) {
-            document.getElementById('delete-form').submit();
+        // Icon + 4 Sprach-Titel in einer Zeile
+        html += '<div class="row g-2 mb-2">';
+        html += '<div class="col-md-2"><label class="form-label small fw-bold">Icon</label><div class="input-group input-group-sm">';
+        html += '<span class="input-group-text"><i class="fa ' + (col.icon || 'fa-question') + '"></i></span>';
+        html += '<input type="text" class="form-control" value="' + (col.icon || '') + '" id="colIcon_' + idx + '" readonly>';
+        html += '<button class="btn btn-outline-secondary" type="button" onclick="openIconPicker(' + idx + ')"><i class="fa fa-th"></i></button>';
+        html += '</div></div>';
+
+        var langs = [{c:'de',l:'DE'},{c:'en',l:'EN'},{c:'fr',l:'FR'},{c:'es',l:'ES'}];
+        langs.forEach(function(lang) {
+          html += '<div class="col"><label class="form-label small fw-bold">' + lang.l + '</label>';
+          html += '<input type="text" class="form-control form-control-sm" value="' + escapeHtml(col['title_' + lang.c] || '') + '" id="colTitle_' + idx + '_' + lang.c + '" placeholder="Titel (' + lang.l + ')"></div>';
+        });
+        html += '</div>';
+
+        // Items
+        html += '<label class="form-label small fw-bold mt-2">Kategorien:</label>';
+        html += '<div class="items-list" id="itemsList_' + idx + '">';
+        if (col.items && col.items.length > 0) {
+          col.items.forEach(function(item, iIdx) {
+            html += '<div class="item-row" data-cat-id="' + item.category_id + '"><span class="drag-handle"><i class="fa fa-bars"></i></span>';
+            html += '<span class="item-label">' + escapeHtml(item.label || 'ID: ' + item.category_id) + ' <small class="text-muted">(ID: ' + item.category_id + ')</small></span>';
+            html += '<button class="btn-remove" onclick="removeItem(' + idx + ',' + iIdx + ')"><i class="fa fa-times"></i></button></div>';
+          });
         }
+        html += '</div>';
+
+        html += '<div class="mt-2 d-flex gap-1"><select class="form-select form-select-sm" id="addCatSelect_' + idx + '" style="max-width:300px;"><option value="">Kategorie hinzufügen...</option></select>';
+        html += '<button class="btn btn-outline-primary btn-sm" onclick="addItemFromSelect(' + idx + ')"><i class="fa fa-plus"></i></button></div>';
+        html += '</div>';
+      });
+      html += '</div>';
+      area.innerHTML = html;
+
+      if (currentParentId) loadCategoriesForDropdowns();
+
+      currentColumns.forEach(function(col, idx) {
+        var list = document.getElementById('itemsList_' + idx);
+        if (list) new Sortable(list, { handle: '.drag-handle', animation: 150, ghostClass: 'sortable-ghost', onEnd: function() { syncItemsFromDOM(idx); } });
+      });
+    }
+
+    function loadCategoriesForDropdowns() {
+      ajax('get_categories', { parent_id: currentParentId }, function(data) {
+        var cats = data.categories || [];
+        currentColumns.forEach(function(col, idx) {
+          var sel = document.getElementById('addCatSelect_' + idx);
+          if (sel) {
+            var h = '<option value="">Kategorie hinzufügen...</option>';
+            cats.forEach(function(c) {
+              var p = ''; for (var i = 0; i < c.level; i++) p += '— ';
+              h += '<option value="' + c.categories_id + '">' + p + c.categories_name + ' (ID: ' + c.categories_id + ')</option>';
+            });
+            sel.innerHTML = h;
+          }
+        });
+      });
+    }
+
+    document.getElementById('btnAddColumn').addEventListener('click', function() {
+      syncAllFromDOM();
+      currentColumns.push({ title_de:'', title_en:'', title_fr:'', title_es:'', icon:'fa-folder-o', items:[] });
+      renderColumns();
+    });
+
+    window.removeColumn = function(idx) {
+      if (confirm('Spalte ' + (idx+1) + ' entfernen?')) { syncAllFromDOM(); currentColumns.splice(idx, 1); renderColumns(); }
     };
 
+    window.addItemFromSelect = function(colIdx) {
+      var sel = document.getElementById('addCatSelect_' + colIdx);
+      if (!sel || !sel.value) return;
+      syncAllFromDOM();
+      var catId = parseInt(sel.value);
+      var catName = sel.options[sel.selectedIndex].text.replace(/^[—\s]+/, '').replace(/\s*\(ID:.*\)$/, '');
+      currentColumns[colIdx].items.push({ category_id: catId, label: catName });
+      renderColumns();
+    };
+
+    window.removeItem = function(colIdx, itemIdx) {
+      syncAllFromDOM(); currentColumns[colIdx].items.splice(itemIdx, 1); renderColumns();
+    };
+
+    function syncItemsFromDOM(colIdx) {
+      var list = document.getElementById('itemsList_' + colIdx);
+      if (!list) return;
+      var items = [];
+      list.querySelectorAll('.item-row').forEach(function(row) {
+        items.push({ category_id: parseInt(row.dataset.catId), label: row.querySelector('.item-label').textContent.replace(/\s*\(ID:.*\)$/, '').trim() });
+      });
+      currentColumns[colIdx].items = items;
+    }
+
+    function syncAllFromDOM() {
+      currentColumns.forEach(function(col, idx) {
+        ['de','en','fr','es'].forEach(function(l) { var inp = document.getElementById('colTitle_' + idx + '_' + l); if (inp) col['title_' + l] = inp.value; });
+        var ic = document.getElementById('colIcon_' + idx); if (ic) col.icon = ic.value;
+        syncItemsFromDOM(idx);
+      });
+    }
+
+    document.getElementById('btnSaveConfig').addEventListener('click', function() {
+      if (!currentParentId) return;
+      syncAllFromDOM();
+      ajax('save_config', { _body: { parent_id: currentParentId, columns: currentColumns } }, function(data) {
+        if (data.success) {
+          showToast('Konfiguration gespeichert!', 'success');
+          var badge = document.querySelector('.category-item[data-id="' + currentParentId + '"] .badge');
+          if (badge) { badge.className = 'badge bg-success rounded-pill'; badge.innerHTML = '<i class="fa fa-check"></i>'; }
+        } else { showToast('Fehler beim Speichern!', 'error'); }
+      });
+    });
+
+    document.getElementById('btnRegenerateCache').addEventListener('click', function() {
+      ajax('regenerate_cache', {}, function(data) {
+        showToast(data.success ? 'Cache regeneriert!' : 'Cache-Fehler!', data.success ? 'success' : 'error');
+      });
+    });
+
     // ============================================================
-    // Init
+    // ICON-PICKER
     // ============================================================
-    updateUsedCategories();
-    initDragDrop();
-    toggleAddColumnBtn();
+    window.openIconPicker = function(colIdx) {
+      iconPickerCallback = function(icon) {
+        syncAllFromDOM();
+        currentColumns[colIdx].icon = icon;
+        var inp = document.getElementById('colIcon_' + colIdx);
+        if (inp) { inp.value = icon; inp.previousElementSibling.innerHTML = '<i class="fa ' + icon + '"></i>'; }
+      };
+      selectedIcon = currentColumns[colIdx] ? currentColumns[colIdx].icon || '' : '';
+      renderIconGrid(); if (!iconModal) iconModal = new bootstrap.Modal(document.getElementById('iconPickerModal')); iconModal.show();
+    };
 
-})();
-</script>
+    window.openIconPickerForNavLink = function(idx) {
+      iconPickerCallback = function(icon) {
+        var inp = document.getElementById('navLinkIcon_' + idx);
+        if (inp) { inp.value = icon; var p = inp.parentElement.querySelector('.input-group-text'); if (p) p.innerHTML = '<i class="fa ' + icon + '"></i>'; }
+      };
+      selectedIcon = (document.getElementById('navLinkIcon_' + idx) || {}).value || '';
+      renderIconGrid(); if (!iconModal) iconModal = new bootstrap.Modal(document.getElementById('iconPickerModal')); iconModal.show();
+    };
 
-<!-- body_eof //-->
+    function renderIconGrid(filter) {
+      var grid = document.getElementById('iconGrid');
+      var html = '', search = (filter || '').toLowerCase();
+      FA_ICONS.forEach(function(icon) {
+        if (search && icon.toLowerCase().indexOf(search) === -1) return;
+        html += '<div class="icon-item' + (icon === selectedIcon ? ' selected' : '') + '" data-icon="' + icon + '" title="' + icon + '"><i class="fa ' + icon + '"></i></div>';
+      });
+      grid.innerHTML = html || '<div class="text-muted p-3">Keine Icons gefunden.</div>';
+      grid.querySelectorAll('.icon-item').forEach(function(el) {
+        el.addEventListener('click', function() {
+          grid.querySelectorAll('.icon-item').forEach(function(x) { x.classList.remove('selected'); });
+          this.classList.add('selected'); selectedIcon = this.dataset.icon;
+          document.getElementById('iconPreview').innerHTML = '<i class="fa ' + selectedIcon + ' fa-2x"></i> <span class="ms-2">' + selectedIcon + '</span>';
+        });
+      });
+    }
 
-<!-- footer //-->
-<?php require(DIR_WS_INCLUDES . 'footer.php'); ?>
-<!-- footer_eof //-->
+    document.getElementById('iconSearchInput').addEventListener('input', function() { renderIconGrid(this.value); });
+    document.getElementById('btnConfirmIcon').addEventListener('click', function() {
+      if (iconPickerCallback && selectedIcon) iconPickerCallback(selectedIcon);
+      iconModal.hide();
+    });
+
+    // ============================================================
+    // NAV-LINKS
+    // ============================================================
+    function loadNavLinks() {
+      ajax('get_navlinks', {}, function(data) { currentNavLinks = data.links || []; renderNavLinks(); });
+    }
+
+    function renderNavLinks() {
+      var c = document.getElementById('navLinksList'), html = '';
+      currentNavLinks.forEach(function(link, idx) {
+        html += '<div class="navlink-row" data-index="' + idx + '">';
+        html += '<span class="drag-handle"><i class="fa fa-bars"></i></span>';
+        html += '<div class="input-group input-group-sm" style="width:140px;flex-shrink:0;"><span class="input-group-text"><i class="fa ' + (link.icon || 'fa-link') + '"></i></span>';
+        html += '<input type="text" class="form-control" value="' + escapeHtml(link.icon || '') + '" id="navLinkIcon_' + idx + '" readonly>';
+        html += '<button class="btn btn-outline-secondary" type="button" onclick="openIconPickerForNavLink(' + idx + ')"><i class="fa fa-th"></i></button></div>';
+        html += '<input type="text" class="form-control form-control-sm" value="' + escapeHtml(link.url || '') + '" id="navLinkUrl_' + idx + '" placeholder="URL">';
+        html += '<input type="text" class="form-control form-control-sm" value="' + escapeHtml(link.name || '') + '" id="navLinkName_' + idx + '" placeholder="Name / MRH_KONSTANTE">';
+        html += '<div class="form-check form-switch" style="flex-shrink:0;"><input class="form-check-input" type="checkbox" id="navLinkActive_' + idx + '" ' + (link.is_active ? 'checked' : '') + '></div>';
+        html += '<button class="btn btn-outline-danger btn-sm" onclick="removeNavLink(' + idx + ')"><i class="fa fa-trash"></i></button>';
+        html += '</div>';
+      });
+      c.innerHTML = html || '<div class="text-center text-muted py-3">Keine Nav-Links.</div>';
+      new Sortable(c, { handle: '.drag-handle', animation: 150, ghostClass: 'sortable-ghost' });
+    }
+
+    document.getElementById('btnAddNavLink').addEventListener('click', function() {
+      syncNavLinksFromDOM(); currentNavLinks.push({ url:'', name:'', icon:'fa-link', is_active:1 }); renderNavLinks();
+    });
+
+    window.removeNavLink = function(idx) { syncNavLinksFromDOM(); currentNavLinks.splice(idx, 1); renderNavLinks(); };
+
+    function syncNavLinksFromDOM() {
+      var links = [];
+      document.querySelectorAll('#navLinksList .navlink-row').forEach(function(row, idx) {
+        links.push({
+          url: (document.getElementById('navLinkUrl_' + idx) || {}).value || '',
+          name: (document.getElementById('navLinkName_' + idx) || {}).value || '',
+          icon: (document.getElementById('navLinkIcon_' + idx) || {}).value || '',
+          is_active: (document.getElementById('navLinkActive_' + idx) || {}).checked ? 1 : 0
+        });
+      });
+      currentNavLinks = links;
+    }
+
+    document.getElementById('btnSaveNavLinks').addEventListener('click', function() {
+      syncNavLinksFromDOM();
+      ajax('save_navlinks', { _body: { links: currentNavLinks } }, function(data) {
+        showToast(data.success ? 'Nav-Links gespeichert!' : 'Fehler!', data.success ? 'success' : 'error');
+      });
+    });
+
+    // ============================================================
+    // SPRACHDATEI-EDITOR
+    // ============================================================
+    function loadLangConstants(lc) {
+      currentLangCode = lc;
+      document.querySelectorAll('.lang-select-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.lang === lc); });
+      document.getElementById('langConstantsList').innerHTML = '<div class="text-center py-3"><i class="fa fa-spinner fa-spin"></i></div>';
+      ajax('get_lang_constants', { lang: lc }, function(data) { currentLangConstants = data.constants || {}; renderLangConstants(); });
+    }
+
+    function renderLangConstants() {
+      var c = document.getElementById('langConstantsList'), keys = Object.keys(currentLangConstants).sort(), html = '';
+      if (keys.length === 0) { c.innerHTML = '<div class="text-center text-muted py-3">Keine MRH_-Konstanten gefunden.</div>'; return; }
+      keys.forEach(function(key) {
+        html += '<div class="lang-editor-row"><span class="const-key">' + key + '</span>';
+        html += '<input type="text" class="form-control form-control-sm" value="' + escapeHtml(currentLangConstants[key]) + '" data-key="' + key + '">';
+        html += '<button class="btn btn-outline-danger btn-sm" onclick="removeLangConstant(\'' + key + '\')"><i class="fa fa-trash"></i></button></div>';
+      });
+      c.innerHTML = html;
+    }
+
+    document.querySelectorAll('.lang-select-btn').forEach(function(b) { b.addEventListener('click', function() { loadLangConstants(this.dataset.lang); }); });
+
+    document.getElementById('btnAddConstant').addEventListener('click', function() {
+      var key = prompt('Neue Konstante (muss mit MRH_ beginnen):', 'MRH_');
+      if (!key || key.indexOf('MRH_') !== 0) { if (key) alert('Muss mit MRH_ beginnen!'); return; }
+      key = key.toUpperCase().replace(/[^A-Z0-9_]/g, '');
+      if (currentLangConstants[key] !== undefined) { alert('Existiert bereits!'); return; }
+      syncLangConstantsFromDOM(); currentLangConstants[key] = ''; renderLangConstants();
+    });
+
+    window.removeLangConstant = function(key) {
+      if (confirm('"' + key + '" entfernen?')) { syncLangConstantsFromDOM(); delete currentLangConstants[key]; renderLangConstants(); }
+    };
+
+    function syncLangConstantsFromDOM() {
+      document.querySelectorAll('#langConstantsList input[data-key]').forEach(function(inp) { currentLangConstants[inp.dataset.key] = inp.value; });
+    }
+
+    document.getElementById('btnSaveLangConstants').addEventListener('click', function() {
+      syncLangConstantsFromDOM();
+      ajax('save_lang_constants', { _body: { lang: currentLangCode, constants: currentLangConstants } }, function(data) {
+        showToast(data.success ? 'Konstanten (' + currentLangCode.toUpperCase() + ') gespeichert!' : 'Fehler! Dateiberechtigungen prüfen.', data.success ? 'success' : 'error');
+      });
+    });
+
+    // Tab-Events
+    document.querySelectorAll('a[data-bs-toggle="tab"]').forEach(function(tab) {
+      tab.addEventListener('shown.bs.tab', function(e) {
+        if (e.target.id === 'navlinks-tab') loadNavLinks();
+        if (e.target.id === 'langeditor-tab') loadLangConstants('de');
+      });
+    });
+
+  })();
+  </script>
 </body>
 </html>
-<?php require(DIR_WS_INCLUDES . 'application_bottom.php'); ?>
