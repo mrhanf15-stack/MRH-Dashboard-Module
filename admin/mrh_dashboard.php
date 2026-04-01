@@ -192,7 +192,12 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
   <title><?php echo $heading_title; ?></title>
   <?php echo '<link rel="stylesheet" href="includes/stylesheet.css">'; ?>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <?php
+  // FA6 Pro vom eigenen Server laden (keine externen CDN-Links!)
+  $tpl_base = (defined('HTTP_SERVER') ? HTTP_SERVER : '/') . 'templates/' . (defined('CURRENT_TEMPLATE') ? CURRENT_TEMPLATE : 'tpl_mrh_2026') . '/css/';
+  echo '<link href="' . $tpl_base . 'fontawesome-6.css" rel="stylesheet">';
+  echo '<link href="' . $tpl_base . 'fontawesome-6-custom.css" rel="stylesheet">';
+  ?>
   <style>
     body { background: #f4f6f9; font-family: 'Segoe UI', Tahoma, sans-serif; }
     .mrh-header { background: linear-gradient(135deg, #2d7a3a 0%, #1a5c28 100%); color: #fff; padding: 20px 30px; border-radius: 12px; margin-bottom: 25px; }
@@ -404,7 +409,19 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
 
     // FA6 Pro Icon-Liste (Solid + Regular + Brands) - 2060 Icons
     var currentIconStyle = 'solid';
-    var FA6_ICONS = <?php echo file_get_contents(dirname(__FILE__) . '/../fa6_icons.json') ?: '{"solid":[],"regular":[],"brands":[]}'; ?>;
+    var FA6_ICONS = <?php
+      // fa6_icons.json liegt im selben Verzeichnis wie mrh_dashboard.php
+      $iconFile = dirname(__FILE__) . '/fa6_icons.json';
+      if (!file_exists($iconFile)) {
+        // Fallback: ein Verzeichnis höher
+        $iconFile = dirname(__FILE__) . '/../fa6_icons.json';
+      }
+      if (!file_exists($iconFile)) {
+        // Fallback: relativ zum Shop-Root
+        $iconFile = (defined('DIR_FS_CATALOG') ? DIR_FS_CATALOG : '') . 'admin/fa6_icons.json';
+      }
+      echo file_exists($iconFile) ? file_get_contents($iconFile) : '{"solid":[],"regular":[],"light":[],"thin":[],"brands":[]}';
+    ?>;
 
     // Hilfsfunktionen
     function ajax(action, params, callback) {
