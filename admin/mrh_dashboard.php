@@ -235,7 +235,7 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
     <!-- Header -->
     <div class="mrh-header d-flex justify-content-between align-items-center">
       <div>
-        <h1><i class="fa fa-dashboard"></i> <?php echo $heading_title; ?></h1>
+        <h1><i class="fa-solid fa-gauge"></i> <?php echo $heading_title; ?></h1>
         <small class="opacity-75">Modulares Dashboard fuer Template-Funktionen</small>
       </div>
       <div><span class="badge bg-light text-dark">v<?php echo htmlspecialchars($version); ?></span></div>
@@ -243,9 +243,9 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
 
     <!-- Haupt-Tabs -->
     <ul class="nav nav-tabs mb-3" id="mainTabs" role="tablist">
-      <li class="nav-item"><a class="nav-link active" id="megamenu-tab" data-bs-toggle="tab" href="#megamenu" role="tab"><i class="fa fa-bars"></i> Mega-Menü</a></li>
-      <li class="nav-item"><a class="nav-link" id="navlinks-tab" data-bs-toggle="tab" href="#navlinks" role="tab"><i class="fa fa-link"></i> Nav-Links</a></li>
-      <li class="nav-item"><a class="nav-link" id="langeditor-tab" data-bs-toggle="tab" href="#langeditor" role="tab"><i class="fa fa-language"></i> Sprachdatei-Editor</a></li>
+      <li class="nav-item"><a class="nav-link active" id="megamenu-tab" data-bs-toggle="tab" href="#megamenu" role="tab"><i class="fa-solid fa-bars"></i> Mega-Menü</a></li>
+      <li class="nav-item"><a class="nav-link" id="navlinks-tab" data-bs-toggle="tab" href="#navlinks" role="tab"><i class="fa-solid fa-link"></i> Nav-Links</a></li>
+      <li class="nav-item"><a class="nav-link" id="langeditor-tab" data-bs-toggle="tab" href="#langeditor" role="tab"><i class="fa-solid fa-language"></i> Sprachdatei-Editor</a></li>
     </ul>
 
     <div class="tab-content">
@@ -255,7 +255,7 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
         <div class="row">
           <div class="col-md-3">
             <div class="mrh-card">
-              <div class="card-header"><i class="fa fa-sitemap"></i> Hauptkategorien</div>
+              <div class="card-header"><i class="fa-solid fa-sitemap"></i> Hauptkategorien</div>
               <div class="card-body p-0">
                 <div class="list-group list-group-flush" id="categoryList">
                   <?php foreach ($mainCategories as $cat): ?>
@@ -265,9 +265,9 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
                        data-name="<?php echo htmlspecialchars($cat['categories_name']); ?>">
                       <?php echo htmlspecialchars($cat['categories_name']); ?>
                       <?php if ($hasConfig): ?>
-                        <span class="badge bg-success rounded-pill"><i class="fa fa-check"></i></span>
+                        <span class="badge bg-success rounded-pill"><i class="fa-solid fa-check"></i></span>
                       <?php else: ?>
-                        <span class="badge bg-secondary rounded-pill"><i class="fa fa-minus"></i></span>
+                        <span class="badge bg-secondary rounded-pill"><i class="fa-solid fa-minus"></i></span>
                       <?php endif; ?>
                     </a>
                   <?php endforeach; ?>
@@ -276,7 +276,7 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
             </div>
             <div class="mrh-card">
               <div class="card-body text-center">
-                <button class="btn btn-success btn-sm" id="btnRegenerateCache"><i class="fa fa-refresh"></i> Cache regenerieren</button>
+                <button class="btn btn-success btn-sm" id="btnRegenerateCache"><i class="fa-solid fa-arrows-rotate"></i> Cache regenerieren</button>
               </div>
             </div>
           </div>
@@ -284,16 +284,16 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
               <div class="col-md-9">
             <div class="mrh-card">
               <div class="card-header d-flex justify-content-between align-items-center">
-                <span id="editorTitle"><i class="fa fa-hand-pointer-o"></i> Kategorie auswählen...</span>
+                <span id="editorTitle"><i class="fa-solid fa-hand-pointer"></i> Kategorie auswählen...</span>
                 <div>
-                  <button class="btn btn-outline-success btn-sm" id="btnPromoConfig" style="display:none;"><i class="fa fa-bullhorn"></i> Promo</button>
-                  <button class="btn btn-primary btn-sm" id="btnAddColumn" style="display:none;"><i class="fa fa-plus"></i> Spalte</button>
-                  <button class="btn btn-success btn-sm" id="btnSaveConfig" style="display:none;"><i class="fa fa-save"></i> Speichern</button>
+                  <button class="btn btn-outline-success btn-sm" id="btnPromoConfig" style="display:none;"><i class="fa-solid fa-bullhorn"></i> Promo</button>
+                  <button class="btn btn-primary btn-sm" id="btnAddColumn" style="display:none;"><i class="fa-solid fa-plus"></i> Spalte</button>
+                  <button class="btn btn-success btn-sm" id="btnSaveConfig" style="display:none;"><i class="fa-solid fa-floppy-disk"></i> Speichern</button>
                 </div>
               </div>
               <div class="card-body" id="editorArea">
                 <div class="text-center text-muted py-5">
-                  <i class="fa fa-arrow-left fa-2x mb-3 d-block"></i>
+                  <i class="fa-solid fa-arrow-left fa-2x mb-3 d-block"></i>
                   <p>Wähle eine Hauptkategorie aus der linken Liste.</p>
                 </div>
               </div>
@@ -306,15 +306,15 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
       <div class="tab-pane fade" id="navlinks" role="tabpanel">
         <div class="mrh-card">
           <div class="card-header d-flex justify-content-between align-items-center">
-            <span><i class="fa fa-link"></i> Zusätzliche Navigationslinks</span>
+            <span><i class="fa-solid fa-link"></i> Zusätzliche Navigationslinks</span>
             <div>
-              <button class="btn btn-primary btn-sm" id="btnAddNavLink"><i class="fa fa-plus"></i> Link</button>
-              <button class="btn btn-success btn-sm" id="btnSaveNavLinks"><i class="fa fa-save"></i> Speichern</button>
+              <button class="btn btn-primary btn-sm" id="btnAddNavLink"><i class="fa-solid fa-plus"></i> Link</button>
+              <button class="btn btn-success btn-sm" id="btnSaveNavLinks"><i class="fa-solid fa-floppy-disk"></i> Speichern</button>
             </div>
           </div>
           <div class="card-body">
             <div class="alert alert-info small mb-3">
-              <i class="fa fa-info-circle"></i>
+              <i class="fa-solid fa-circle-info"></i>
               <strong>Syntax:</strong> URL + Linkname. Für <strong>Mehrsprachigkeit</strong> verwende als Name eine Konstante mit Prefix <code>MRH_</code> (z.B. <code>MRH_NAV_ANGEBOTE</code>).
               Die Konstante wird im <strong>Sprachdatei-Editor</strong> pro Sprache definiert.
               <br><strong>Beispiel:</strong> <code>specials.php</code> | <code>MRH_NAV_ANGEBOTE</code>
@@ -328,15 +328,15 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
       <div class="tab-pane fade" id="langeditor" role="tabpanel">
         <div class="mrh-card">
           <div class="card-header d-flex justify-content-between align-items-center">
-            <span><i class="fa fa-language"></i> MRH Sprachkonstanten</span>
+            <span><i class="fa-solid fa-language"></i> MRH Sprachkonstanten</span>
             <div>
-              <button class="btn btn-primary btn-sm" id="btnAddConstant"><i class="fa fa-plus"></i> Konstante</button>
-              <button class="btn btn-success btn-sm" id="btnSaveLangConstants"><i class="fa fa-save"></i> Speichern</button>
+              <button class="btn btn-primary btn-sm" id="btnAddConstant"><i class="fa-solid fa-plus"></i> Konstante</button>
+              <button class="btn btn-success btn-sm" id="btnSaveLangConstants"><i class="fa-solid fa-floppy-disk"></i> Speichern</button>
             </div>
           </div>
           <div class="card-body">
             <div class="alert alert-info small mb-3">
-              <i class="fa fa-info-circle"></i>
+              <i class="fa-solid fa-circle-info"></i>
               <code>MRH_</code>-Sprachkonstanten bearbeiten. Gespeichert in <code>lang/{sprache}/extra/admin/mrh_dashboard.php</code>.
             </div>
             <div class="mb-3">
@@ -357,18 +357,25 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
 
   <!-- Icon-Picker Modal -->
   <div class="modal fade icon-picker-modal" id="iconPickerModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title"><i class="fa fa-th"></i> Icon auswählen</h5>
+          <h5 class="modal-title"><span class="fa-solid fa-icons"></span> Icon auswählen (Font Awesome 6 Pro)</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <input type="text" class="form-control mb-3" id="iconSearchInput" placeholder="Icon suchen... (z.B. leaf, star, home)">
-          <div class="icon-grid" id="iconGrid"></div>
+          <div class="d-flex gap-2 mb-3">
+            <div class="btn-group" role="group">
+              <button type="button" class="btn btn-sm btn-outline-success active" data-icon-style="solid" onclick="switchIconStyle('solid',this)">Solid (1402)</button>
+              <button type="button" class="btn btn-sm btn-outline-primary" data-icon-style="regular" onclick="switchIconStyle('regular',this)">Regular (163)</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary" data-icon-style="brands" onclick="switchIconStyle('brands',this)">Brands (495)</button>
+            </div>
+            <input type="text" class="form-control form-control-sm flex-grow-1" id="iconSearchInput" placeholder="Icon suchen... (z.B. leaf, cannabis, star, home)">
+          </div>
+          <div class="icon-grid" id="iconGrid" style="max-height:400px;overflow-y:auto;"></div>
         </div>
         <div class="modal-footer">
-          <span class="me-auto" id="iconPreview"><i class="fa fa-question fa-2x"></i> <span class="ms-2 text-muted">Kein Icon</span></span>
+          <span class="me-auto" id="iconPreview"><span class="fa-solid fa-question fa-2x"></span> <span class="ms-2 text-muted">Kein Icon</span></span>
           <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Abbrechen</button>
           <button type="button" class="btn btn-success btn-sm" id="btnConfirmIcon">Übernehmen</button>
         </div>
@@ -393,7 +400,9 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
     var iconModal = null;
     var AJAX_URL = 'mrh_dashboard.php';
 
-    var FA_ICONS = ['fa-glass','fa-music','fa-search','fa-envelope-o','fa-heart','fa-star','fa-star-o','fa-user','fa-film','fa-th-large','fa-th','fa-th-list','fa-check','fa-times','fa-search-plus','fa-search-minus','fa-power-off','fa-signal','fa-cog','fa-trash-o','fa-home','fa-file-o','fa-clock-o','fa-road','fa-download','fa-arrow-circle-o-down','fa-arrow-circle-o-up','fa-inbox','fa-play-circle-o','fa-repeat','fa-refresh','fa-list-alt','fa-lock','fa-flag','fa-headphones','fa-volume-off','fa-volume-down','fa-volume-up','fa-qrcode','fa-barcode','fa-tag','fa-tags','fa-book','fa-bookmark','fa-print','fa-camera','fa-font','fa-bold','fa-italic','fa-text-height','fa-text-width','fa-align-left','fa-align-center','fa-align-right','fa-align-justify','fa-list','fa-outdent','fa-indent','fa-video-camera','fa-image','fa-pencil','fa-map-marker','fa-adjust','fa-tint','fa-edit','fa-pencil-square-o','fa-share-square-o','fa-check-square-o','fa-arrows','fa-step-backward','fa-fast-backward','fa-backward','fa-play','fa-pause','fa-stop','fa-forward','fa-fast-forward','fa-step-forward','fa-eject','fa-chevron-left','fa-chevron-right','fa-plus-circle','fa-minus-circle','fa-times-circle','fa-check-circle','fa-question-circle','fa-info-circle','fa-crosshairs','fa-times-circle-o','fa-check-circle-o','fa-ban','fa-arrow-left','fa-arrow-right','fa-arrow-up','fa-arrow-down','fa-share','fa-expand','fa-compress','fa-plus','fa-minus','fa-asterisk','fa-exclamation-circle','fa-gift','fa-leaf','fa-fire','fa-eye','fa-eye-slash','fa-warning','fa-exclamation-triangle','fa-plane','fa-calendar','fa-random','fa-comment','fa-magnet','fa-chevron-up','fa-chevron-down','fa-retweet','fa-shopping-cart','fa-folder','fa-folder-open','fa-arrows-v','fa-arrows-h','fa-bar-chart-o','fa-bar-chart','fa-twitter-square','fa-facebook-square','fa-camera-retro','fa-key','fa-cogs','fa-comments','fa-thumbs-o-up','fa-thumbs-o-down','fa-star-half','fa-heart-o','fa-sign-out','fa-linkedin-square','fa-thumb-tack','fa-external-link','fa-sign-in','fa-trophy','fa-github-square','fa-upload','fa-lemon-o','fa-phone','fa-square-o','fa-bookmark-o','fa-phone-square','fa-twitter','fa-facebook-f','fa-facebook','fa-github','fa-unlock','fa-credit-card','fa-feed','fa-rss','fa-hdd-o','fa-bullhorn','fa-bell','fa-certificate','fa-hand-o-right','fa-hand-o-left','fa-hand-o-up','fa-hand-o-down','fa-arrow-circle-left','fa-arrow-circle-right','fa-arrow-circle-up','fa-arrow-circle-down','fa-globe','fa-wrench','fa-tasks','fa-filter','fa-briefcase','fa-arrows-alt','fa-group','fa-users','fa-link','fa-cloud','fa-flask','fa-cut','fa-scissors','fa-copy','fa-files-o','fa-paperclip','fa-save','fa-floppy-o','fa-square','fa-bars','fa-list-ul','fa-list-ol','fa-strikethrough','fa-underline','fa-table','fa-magic','fa-truck','fa-pinterest','fa-pinterest-square','fa-google-plus-square','fa-google-plus','fa-money','fa-caret-down','fa-caret-up','fa-caret-left','fa-caret-right','fa-columns','fa-sort','fa-sort-down','fa-sort-desc','fa-sort-up','fa-sort-asc','fa-envelope','fa-linkedin','fa-undo','fa-gavel','fa-tachometer','fa-comment-o','fa-comments-o','fa-bolt','fa-sitemap','fa-umbrella','fa-clipboard','fa-lightbulb-o','fa-exchange','fa-cloud-download','fa-cloud-upload','fa-user-md','fa-stethoscope','fa-suitcase','fa-bell-o','fa-coffee','fa-cutlery','fa-file-text-o','fa-building-o','fa-hospital-o','fa-ambulance','fa-medkit','fa-fighter-jet','fa-beer','fa-h-square','fa-plus-square','fa-angle-double-left','fa-angle-double-right','fa-angle-double-up','fa-angle-double-down','fa-angle-left','fa-angle-right','fa-angle-up','fa-angle-down','fa-desktop','fa-laptop','fa-tablet','fa-mobile-phone','fa-mobile','fa-circle-o','fa-quote-left','fa-quote-right','fa-spinner','fa-circle','fa-reply','fa-github-alt','fa-folder-o','fa-folder-open-o','fa-smile-o','fa-frown-o','fa-meh-o','fa-gamepad','fa-keyboard-o','fa-flag-o','fa-flag-checkered','fa-terminal','fa-code','fa-reply-all','fa-star-half-o','fa-location-arrow','fa-crop','fa-code-fork','fa-unlink','fa-question','fa-info','fa-exclamation','fa-superscript','fa-subscript','fa-eraser','fa-puzzle-piece','fa-microphone','fa-microphone-slash','fa-shield','fa-calendar-o','fa-fire-extinguisher','fa-rocket','fa-maxcdn','fa-chevron-circle-left','fa-chevron-circle-right','fa-chevron-circle-up','fa-chevron-circle-down','fa-html5','fa-css3','fa-anchor','fa-unlock-alt','fa-bullseye','fa-ellipsis-h','fa-ellipsis-v','fa-rss-square','fa-play-circle','fa-ticket','fa-minus-square','fa-minus-square-o','fa-level-up','fa-level-down','fa-check-square','fa-pencil-square','fa-external-link-square','fa-share-square','fa-compass','fa-toggle-down','fa-caret-square-o-down','fa-toggle-up','fa-caret-square-o-up','fa-toggle-right','fa-caret-square-o-right','fa-euro','fa-eur','fa-gbp','fa-dollar','fa-usd','fa-rupee','fa-inr','fa-cny','fa-rmb','fa-yen','fa-jpy','fa-ruble','fa-rouble','fa-rub','fa-won','fa-krw','fa-bitcoin','fa-btc','fa-file','fa-file-text','fa-sort-alpha-asc','fa-sort-alpha-desc','fa-sort-amount-asc','fa-sort-amount-desc','fa-sort-numeric-asc','fa-sort-numeric-desc','fa-thumbs-up','fa-thumbs-down','fa-youtube-square','fa-youtube','fa-xing','fa-xing-square','fa-youtube-play','fa-dropbox','fa-stack-overflow','fa-instagram','fa-flickr','fa-adn','fa-bitbucket','fa-bitbucket-square','fa-tumblr','fa-tumblr-square','fa-long-arrow-down','fa-long-arrow-up','fa-long-arrow-left','fa-long-arrow-right','fa-apple','fa-windows','fa-android','fa-linux','fa-dribbble','fa-skype','fa-foursquare','fa-trello','fa-female','fa-male','fa-gittip','fa-gratipay','fa-sun-o','fa-moon-o','fa-archive','fa-bug','fa-vk','fa-weibo','fa-renren','fa-pagelines','fa-stack-exchange','fa-arrow-circle-o-right','fa-arrow-circle-o-left','fa-toggle-left','fa-caret-square-o-left','fa-dot-circle-o','fa-wheelchair','fa-vimeo-square','fa-turkish-lira','fa-try','fa-plus-square-o','fa-space-shuttle','fa-slack','fa-envelope-square','fa-wordpress','fa-openid','fa-institution','fa-bank','fa-university','fa-mortar-board','fa-graduation-cap','fa-yahoo','fa-google','fa-reddit','fa-reddit-square','fa-stumbleupon-circle','fa-stumbleupon','fa-delicious','fa-digg','fa-pied-piper-pp','fa-pied-piper-alt','fa-drupal','fa-joomla','fa-language','fa-fax','fa-building','fa-child','fa-paw','fa-spoon','fa-cube','fa-cubes','fa-behance','fa-behance-square','fa-steam','fa-steam-square','fa-recycle','fa-automobile','fa-car','fa-cab','fa-taxi','fa-tree','fa-spotify','fa-deviantart','fa-soundcloud','fa-database','fa-file-pdf-o','fa-file-word-o','fa-file-excel-o','fa-file-powerpoint-o','fa-file-photo-o','fa-file-picture-o','fa-file-image-o','fa-file-zip-o','fa-file-archive-o','fa-file-sound-o','fa-file-audio-o','fa-file-movie-o','fa-file-video-o','fa-file-code-o','fa-vine','fa-codepen','fa-jsfiddle','fa-life-bouy','fa-life-buoy','fa-life-saver','fa-support','fa-life-ring','fa-circle-o-notch','fa-ra','fa-resistance','fa-rebel','fa-ge','fa-empire','fa-git-square','fa-git','fa-y-combinator-square','fa-yc-square','fa-hacker-news','fa-tencent-weibo','fa-qq','fa-wechat','fa-weixin','fa-send','fa-paper-plane','fa-send-o','fa-paper-plane-o','fa-history','fa-circle-thin','fa-header','fa-paragraph','fa-sliders','fa-share-alt','fa-share-alt-square','fa-bomb','fa-soccer-ball-o','fa-futbol-o','fa-tty','fa-binoculars','fa-plug','fa-slideshare','fa-twitch','fa-yelp','fa-newspaper-o','fa-wifi','fa-calculator','fa-paypal','fa-google-wallet','fa-cc-visa','fa-cc-mastercard','fa-cc-discover','fa-cc-amex','fa-cc-paypal','fa-cc-stripe','fa-bell-slash','fa-bell-slash-o','fa-trash','fa-copyright','fa-at','fa-eyedropper','fa-paint-brush','fa-birthday-cake','fa-area-chart','fa-pie-chart','fa-line-chart','fa-lastfm','fa-lastfm-square','fa-toggle-off','fa-toggle-on','fa-bicycle','fa-bus','fa-ioxhost','fa-angellist','fa-cc','fa-shekel','fa-sheqel','fa-ils','fa-meanpath','fa-buysellads','fa-connectdevelop','fa-dashcube','fa-forumbee','fa-leanpub','fa-sellsy','fa-shirtsinbulk','fa-simplybuilt','fa-skyatlas','fa-cart-plus','fa-cart-arrow-down','fa-diamond','fa-ship','fa-user-secret','fa-motorcycle','fa-street-view','fa-heartbeat','fa-venus','fa-mars','fa-mercury','fa-intersex','fa-transgender','fa-transgender-alt','fa-venus-double','fa-mars-double','fa-venus-mars','fa-mars-stroke','fa-mars-stroke-v','fa-mars-stroke-h','fa-neuter','fa-genderless','fa-facebook-official','fa-pinterest-p','fa-whatsapp','fa-server','fa-user-plus','fa-user-times','fa-hotel','fa-bed','fa-viacoin','fa-train','fa-subway','fa-medium','fa-yc','fa-y-combinator','fa-optin-monster','fa-opencart','fa-expeditedssl','fa-battery-4','fa-battery-full','fa-battery-3','fa-battery-three-quarters','fa-battery-2','fa-battery-half','fa-battery-1','fa-battery-quarter','fa-battery-0','fa-battery-empty','fa-mouse-pointer','fa-i-cursor','fa-object-group','fa-object-ungroup','fa-sticky-note','fa-sticky-note-o','fa-cc-jcb','fa-cc-diners-club','fa-clone','fa-balance-scale','fa-hourglass-o','fa-hourglass-1','fa-hourglass-start','fa-hourglass-2','fa-hourglass-half','fa-hourglass-3','fa-hourglass-end','fa-hourglass','fa-hand-grab-o','fa-hand-rock-o','fa-hand-stop-o','fa-hand-paper-o','fa-hand-scissors-o','fa-hand-lizard-o','fa-hand-spock-o','fa-hand-pointer-o','fa-hand-peace-o','fa-trademark','fa-registered','fa-creative-commons','fa-gg','fa-gg-circle','fa-tripadvisor','fa-odnoklassniki','fa-odnoklassniki-square','fa-get-pocket','fa-wikipedia-w','fa-safari','fa-chrome','fa-firefox','fa-opera','fa-internet-explorer','fa-tv','fa-television','fa-contao','fa-500px','fa-amazon','fa-calendar-plus-o','fa-calendar-minus-o','fa-calendar-times-o','fa-calendar-check-o','fa-industry','fa-map-pin','fa-map-signs','fa-map-o','fa-map','fa-commenting','fa-commenting-o','fa-houzz','fa-vimeo','fa-black-tie','fa-fonticons','fa-reddit-alien','fa-edge','fa-credit-card-alt','fa-codiepie','fa-modx','fa-fort-awesome','fa-usb','fa-product-hunt','fa-mixcloud','fa-scribd','fa-pause-circle','fa-pause-circle-o','fa-stop-circle','fa-stop-circle-o','fa-shopping-bag','fa-shopping-basket','fa-hashtag','fa-bluetooth','fa-bluetooth-b','fa-percent','fa-gitlab','fa-wpbeginner','fa-wpforms','fa-envira','fa-universal-access','fa-wheelchair-alt','fa-question-circle-o','fa-blind','fa-audio-description','fa-volume-control-phone','fa-braille','fa-assistive-listening-systems','fa-asl-interpreting','fa-american-sign-language-interpreting','fa-deafness','fa-hard-of-hearing','fa-deaf','fa-glide','fa-glide-g','fa-signing','fa-sign-language','fa-low-vision','fa-viadeo','fa-viadeo-square','fa-snapchat','fa-snapchat-ghost','fa-snapchat-square','fa-pied-piper','fa-first-order','fa-yoast','fa-themeisle','fa-google-plus-circle','fa-google-plus-official','fa-fa','fa-font-awesome'];
+    // FA6 Pro Icon-Liste (Solid + Regular + Brands) - 2060 Icons
+    var currentIconStyle = 'solid';
+    var FA6_ICONS = <?php echo file_get_contents(dirname(__FILE__) . '/../fa6_icons.json') ?: '{"solid":[],"regular":[],"brands":[]}'; ?>;
 
     // Hilfsfunktionen
     function ajax(action, params, callback) {
@@ -420,7 +429,7 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
       var t = document.createElement('div');
       t.className = 'position-fixed top-0 end-0 m-3 p-3 rounded shadow text-white';
       t.style.cssText = 'z-index:9999;background:' + (type === 'success' ? '#2d7a3a' : '#dc3545') + ';transition:opacity 0.3s;';
-      t.innerHTML = '<i class="fa ' + (type === 'success' ? 'fa-check' : 'fa-times') + '"></i> ' + msg;
+      t.innerHTML = '<span class="' + (type === 'success' ? 'fa-solid fa-check' : 'fa-solid fa-xmark') + '"></span> ' + msg;
       document.body.appendChild(t);
       setTimeout(function() { t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 300); }, 2500);
     }
@@ -436,7 +445,7 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
         document.querySelectorAll('.category-item').forEach(function(x) { x.classList.remove('active'); });
         this.classList.add('active');
         currentParentId = parseInt(this.dataset.id);
-        document.getElementById('editorTitle').innerHTML = '<i class="fa fa-edit"></i> ' + this.dataset.name + ' <small class="text-muted">(ID: ' + currentParentId + ')</small>';
+        document.getElementById('editorTitle').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> ' + this.dataset.name + ' <small class="text-muted">(ID: ' + currentParentId + ')</small>';
         document.getElementById('btnAddColumn').style.display = '';
         document.getElementById('btnSaveConfig').style.display = '';
         document.getElementById('btnPromoConfig').style.display = '';
@@ -445,7 +454,7 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
     });
 
     function loadConfig(pid) {
-      document.getElementById('editorArea').innerHTML = '<div class="text-center py-4"><i class="fa fa-spinner fa-spin fa-2x"></i></div>';
+      document.getElementById('editorArea').innerHTML = '<div class="text-center py-4"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>';
       ajax('get_config', { parent_id: pid }, function(data) {
         currentColumns = data.config || [];
         renderColumns();
@@ -462,15 +471,15 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
       var html = '<div id="columnsContainer">';
       currentColumns.forEach(function(col, idx) {
         html += '<div class="column-card" data-index="' + idx + '">';
-        html += '<div class="column-header"><div class="d-flex align-items-center gap-2"><span class="drag-handle"><i class="fa fa-bars"></i></span><h6 class="mb-0">Spalte ' + (idx + 1) + '</h6></div>';
-        html += '<button class="btn btn-outline-danger btn-sm" onclick="removeColumn(' + idx + ')"><i class="fa fa-trash"></i></button></div>';
+        html += '<div class="column-header"><div class="d-flex align-items-center gap-2"><span class="drag-handle"><i class="fa-solid fa-bars"></i></span><h6 class="mb-0">Spalte ' + (idx + 1) + '</h6></div>';
+        html += '<button class="btn btn-outline-danger btn-sm" onclick="removeColumn(' + idx + ')"><i class="fa-solid fa-trash"></i></button></div>';
 
         // Icon + 4 Sprach-Titel in einer Zeile
         html += '<div class="row g-2 mb-2">';
         html += '<div class="col-md-2"><label class="form-label small fw-bold">Icon</label><div class="input-group input-group-sm">';
-        html += '<span class="input-group-text"><i class="fa ' + (col.icon || 'fa-question') + '"></i></span>';
+        html += '<span class="input-group-text"><span class="' + iconDisplayClass(col.icon || 'fa-solid fa-question') + '"></span></span>';
         html += '<input type="text" class="form-control" value="' + (col.icon || '') + '" id="colIcon_' + idx + '" readonly>';
-        html += '<button class="btn btn-outline-secondary" type="button" onclick="openIconPicker(' + idx + ')"><i class="fa fa-th"></i></button>';
+        html += '<button class="btn btn-outline-secondary" type="button" onclick="openIconPicker(' + idx + ')"><i class="fa-solid fa-table-cells"></i></button>';
         html += '</div></div>';
 
         var langs = [{c:'de',l:'DE'},{c:'en',l:'EN'},{c:'fr',l:'FR'},{c:'es',l:'ES'}];
@@ -485,15 +494,15 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
         html += '<div class="items-list" id="itemsList_' + idx + '">';
         if (col.items && col.items.length > 0) {
           col.items.forEach(function(item, iIdx) {
-            html += '<div class="item-row" data-cat-id="' + item.category_id + '"><span class="drag-handle"><i class="fa fa-bars"></i></span>';
+            html += '<div class="item-row" data-cat-id="' + item.category_id + '"><span class="drag-handle"><i class="fa-solid fa-bars"></i></span>';
             html += '<span class="item-label">' + escapeHtml(item.label || 'ID: ' + item.category_id) + ' <small class="text-muted">(ID: ' + item.category_id + ')</small></span>';
-            html += '<button class="btn-remove" onclick="removeItem(' + idx + ',' + iIdx + ')"><i class="fa fa-times"></i></button></div>';
+            html += '<button class="btn-remove" onclick="removeItem(' + idx + ',' + iIdx + ')"><i class="fa-solid fa-xmark"></i></button></div>';
           });
         }
         html += '</div>';
 
         html += '<div class="mt-2 d-flex gap-1"><select class="form-select form-select-sm" id="addCatSelect_' + idx + '" style="max-width:300px;"><option value="">Kategorie hinzufügen...</option></select>';
-        html += '<button class="btn btn-outline-primary btn-sm" onclick="addItemFromSelect(' + idx + ')"><i class="fa fa-plus"></i></button></div>';
+        html += '<button class="btn btn-outline-primary btn-sm" onclick="addItemFromSelect(' + idx + ')"><i class="fa-solid fa-plus"></i></button></div>';
         html += '</div>';
       });
       html += '</div>';
@@ -573,7 +582,7 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
         if (data.success) {
           showToast('Konfiguration gespeichert!', 'success');
           var badge = document.querySelector('.category-item[data-id="' + currentParentId + '"] .badge');
-          if (badge) { badge.className = 'badge bg-success rounded-pill'; badge.innerHTML = '<i class="fa fa-check"></i>'; }
+          if (badge) { badge.className = 'badge bg-success rounded-pill'; badge.innerHTML = '<i class="fa-solid fa-check"></i>'; }
         } else { showToast('Fehler beim Speichern!', 'error'); }
       });
     });
@@ -587,39 +596,69 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
     // ============================================================
     // ICON-PICKER
     // ============================================================
+    // Hilfsfunktion: Icon-Klasse für Anzeige bauen
+    function iconDisplayClass(fullIcon) {
+      if (!fullIcon) return 'fa-solid fa-question';
+      if (fullIcon.indexOf('fa-solid ') === 0 || fullIcon.indexOf('fa-regular ') === 0 || fullIcon.indexOf('fa-brands ') === 0) return fullIcon;
+      return 'fa-solid ' + fullIcon;
+    }
+
+    // Stil-Prefix für aktuellen Tab
+    function getStylePrefix() {
+      if (currentIconStyle === 'regular') return 'fa-regular';
+      if (currentIconStyle === 'brands') return 'fa-brands';
+      return 'fa-solid';
+    }
+
+    window.switchIconStyle = function(style, btn) {
+      currentIconStyle = style;
+      document.querySelectorAll('[data-icon-style]').forEach(function(b) { b.classList.remove('active'); });
+      if (btn) btn.classList.add('active');
+      renderIconGrid(document.getElementById('iconSearchInput').value);
+    };
+
     window.openIconPicker = function(colIdx) {
       iconPickerCallback = function(icon) {
         syncAllFromDOM();
         currentColumns[colIdx].icon = icon;
         var inp = document.getElementById('colIcon_' + colIdx);
-        if (inp) { inp.value = icon; inp.previousElementSibling.innerHTML = '<i class="fa ' + icon + '"></i>'; }
+        if (inp) { inp.value = icon; inp.previousElementSibling.innerHTML = '<span class="' + iconDisplayClass(icon) + '"></span>'; }
       };
       selectedIcon = currentColumns[colIdx] ? currentColumns[colIdx].icon || '' : '';
+      currentIconStyle = 'solid';
+      document.querySelectorAll('[data-icon-style]').forEach(function(b) { b.classList.remove('active'); });
+      var solidBtn = document.querySelector('[data-icon-style="solid"]'); if (solidBtn) solidBtn.classList.add('active');
       renderIconGrid(); if (!iconModal) iconModal = new bootstrap.Modal(document.getElementById('iconPickerModal')); iconModal.show();
     };
 
     window.openIconPickerForNavLink = function(idx) {
       iconPickerCallback = function(icon) {
         var inp = document.getElementById('navLinkIcon_' + idx);
-        if (inp) { inp.value = icon; var p = inp.parentElement.querySelector('.input-group-text'); if (p) p.innerHTML = '<i class="fa ' + icon + '"></i>'; }
+        if (inp) { inp.value = icon; var p = inp.parentElement.querySelector('.input-group-text'); if (p) p.innerHTML = '<span class="' + iconDisplayClass(icon) + '"></span>'; }
       };
       selectedIcon = (document.getElementById('navLinkIcon_' + idx) || {}).value || '';
+      currentIconStyle = 'solid';
+      document.querySelectorAll('[data-icon-style]').forEach(function(b) { b.classList.remove('active'); });
+      var solidBtn = document.querySelector('[data-icon-style="solid"]'); if (solidBtn) solidBtn.classList.add('active');
       renderIconGrid(); if (!iconModal) iconModal = new bootstrap.Modal(document.getElementById('iconPickerModal')); iconModal.show();
     };
 
     function renderIconGrid(filter) {
       var grid = document.getElementById('iconGrid');
       var html = '', search = (filter || '').toLowerCase();
-      FA_ICONS.forEach(function(icon) {
+      var icons = FA6_ICONS[currentIconStyle] || [];
+      var prefix = getStylePrefix();
+      icons.forEach(function(icon) {
         if (search && icon.toLowerCase().indexOf(search) === -1) return;
-        html += '<div class="icon-item' + (icon === selectedIcon ? ' selected' : '') + '" data-icon="' + icon + '" title="' + icon + '"><i class="fa ' + icon + '"></i></div>';
+        var fullIcon = prefix + ' ' + icon;
+        html += '<div class="icon-item' + (fullIcon === selectedIcon ? ' selected' : '') + '" data-icon="' + fullIcon + '" title="' + fullIcon + '"><span class="' + fullIcon + '"></span></div>';
       });
       grid.innerHTML = html || '<div class="text-muted p-3">Keine Icons gefunden.</div>';
       grid.querySelectorAll('.icon-item').forEach(function(el) {
         el.addEventListener('click', function() {
           grid.querySelectorAll('.icon-item').forEach(function(x) { x.classList.remove('selected'); });
           this.classList.add('selected'); selectedIcon = this.dataset.icon;
-          document.getElementById('iconPreview').innerHTML = '<i class="fa ' + selectedIcon + ' fa-2x"></i> <span class="ms-2">' + selectedIcon + '</span>';
+          document.getElementById('iconPreview').innerHTML = '<span class="' + selectedIcon + ' fa-2x"></span> <span class="ms-2">' + selectedIcon + '</span>';
         });
       });
     }
@@ -641,14 +680,14 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
       var c = document.getElementById('navLinksList'), html = '';
       currentNavLinks.forEach(function(link, idx) {
         html += '<div class="navlink-row" data-index="' + idx + '">';
-        html += '<span class="drag-handle"><i class="fa fa-bars"></i></span>';
-        html += '<div class="input-group input-group-sm" style="width:140px;flex-shrink:0;"><span class="input-group-text"><i class="fa ' + (link.icon || 'fa-link') + '"></i></span>';
+        html += '<span class="drag-handle"><i class="fa-solid fa-bars"></i></span>';
+        html += '<div class="input-group input-group-sm" style="width:140px;flex-shrink:0;"><span class="input-group-text"><span class="' + iconDisplayClass(link.icon || 'fa-solid fa-link') + '"></span></span>';
         html += '<input type="text" class="form-control" value="' + escapeHtml(link.icon || '') + '" id="navLinkIcon_' + idx + '" readonly>';
-        html += '<button class="btn btn-outline-secondary" type="button" onclick="openIconPickerForNavLink(' + idx + ')"><i class="fa fa-th"></i></button></div>';
+        html += '<button class="btn btn-outline-secondary" type="button" onclick="openIconPickerForNavLink(' + idx + ')"><i class="fa-solid fa-table-cells"></i></button></div>';
         html += '<input type="text" class="form-control form-control-sm" value="' + escapeHtml(link.url || '') + '" id="navLinkUrl_' + idx + '" placeholder="URL">';
         html += '<input type="text" class="form-control form-control-sm" value="' + escapeHtml(link.name || '') + '" id="navLinkName_' + idx + '" placeholder="Name / MRH_KONSTANTE">';
         html += '<div class="form-check form-switch" style="flex-shrink:0;"><input class="form-check-input" type="checkbox" id="navLinkActive_' + idx + '" ' + (link.is_active ? 'checked' : '') + '></div>';
-        html += '<button class="btn btn-outline-danger btn-sm" onclick="removeNavLink(' + idx + ')"><i class="fa fa-trash"></i></button>';
+        html += '<button class="btn btn-outline-danger btn-sm" onclick="removeNavLink(' + idx + ')"><i class="fa-solid fa-trash"></i></button>';
         html += '</div>';
       });
       c.innerHTML = html || '<div class="text-center text-muted py-3">Keine Nav-Links.</div>';
@@ -687,7 +726,7 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
     function loadLangConstants(lc) {
       currentLangCode = lc;
       document.querySelectorAll('.lang-select-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.lang === lc); });
-      document.getElementById('langConstantsList').innerHTML = '<div class="text-center py-3"><i class="fa fa-spinner fa-spin"></i></div>';
+      document.getElementById('langConstantsList').innerHTML = '<div class="text-center py-3"><i class="fa-solid fa-spinner fa-spin"></i></div>';
       ajax('get_lang_constants', { lang: lc }, function(data) { currentLangConstants = data.constants || {}; renderLangConstants(); });
     }
 
@@ -697,7 +736,7 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
       keys.forEach(function(key) {
         html += '<div class="lang-editor-row"><span class="const-key">' + key + '</span>';
         html += '<input type="text" class="form-control form-control-sm" value="' + escapeHtml(currentLangConstants[key]) + '" data-key="' + key + '">';
-        html += '<button class="btn btn-outline-danger btn-sm" onclick="removeLangConstant(\'' + key + '\')"><i class="fa fa-trash"></i></button></div>';
+        html += '<button class="btn btn-outline-danger btn-sm" onclick="removeLangConstant(\'' + key + '\')"><i class="fa-solid fa-trash"></i></button></div>';
       });
       c.innerHTML = html;
     }
@@ -745,13 +784,13 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
           '<div class="modal-dialog modal-lg">' +
           '<div class="modal-content">' +
           '<div class="modal-header" style="background:#f0faf2;">' +
-          '<h5 class="modal-title"><i class="fa fa-bullhorn" style="color:#2d7a3a;"></i> Promo-Konfiguration</h5>' +
+          '<h5 class="modal-title"><i class="fa-solid fa-bullhorn" style="color:#2d7a3a;"></i> Promo-Konfiguration</h5>' +
           '<button type="button" class="btn-close" data-bs-dismiss="modal"></button>' +
           '</div>' +
           '<div class="modal-body" id="promoModalBody"></div>' +
           '<div class="modal-footer">' +
           '<button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Abbrechen</button>' +
-          '<button type="button" class="btn btn-success btn-sm" id="btnSavePromo"><i class="fa fa-save"></i> Promo speichern</button>' +
+          '<button type="button" class="btn btn-success btn-sm" id="btnSavePromo"><i class="fa-solid fa-floppy-disk"></i> Promo speichern</button>' +
           '</div>' +
           '</div></div>';
         document.body.appendChild(promoModalEl);
@@ -815,14 +854,14 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
         html += '<label class="form-label fw-bold">Visueller Editor:</label>';
         // WYSIWYG Toolbar
         html += '<div class="wysiwyg-toolbar" style="display:flex;flex-wrap:wrap;gap:2px;padding:6px 8px;background:#f8f9fa;border:1px solid #dee2e6;border-bottom:none;border-radius:8px 8px 0 0;">';
-        html += '<button type="button" class="btn btn-sm btn-outline-secondary wysi-btn" data-cmd="bold" title="Fett"><i class="fa fa-bold"></i></button>';
-        html += '<button type="button" class="btn btn-sm btn-outline-secondary wysi-btn" data-cmd="italic" title="Kursiv"><i class="fa fa-italic"></i></button>';
-        html += '<button type="button" class="btn btn-sm btn-outline-secondary wysi-btn" data-cmd="underline" title="Unterstrichen"><i class="fa fa-underline"></i></button>';
-        html += '<button type="button" class="btn btn-sm btn-outline-secondary wysi-btn" data-cmd="strikeThrough" title="Durchgestrichen"><i class="fa fa-strikethrough"></i></button>';
+        html += '<button type="button" class="btn btn-sm btn-outline-secondary wysi-btn" data-cmd="bold" title="Fett"><i class="fa-solid fa-bold"></i></button>';
+        html += '<button type="button" class="btn btn-sm btn-outline-secondary wysi-btn" data-cmd="italic" title="Kursiv"><i class="fa-solid fa-italic"></i></button>';
+        html += '<button type="button" class="btn btn-sm btn-outline-secondary wysi-btn" data-cmd="underline" title="Unterstrichen"><i class="fa-solid fa-underline"></i></button>';
+        html += '<button type="button" class="btn btn-sm btn-outline-secondary wysi-btn" data-cmd="strikeThrough" title="Durchgestrichen"><i class="fa-solid fa-strikethrough"></i></button>';
         html += '<span style="border-left:1px solid #ccc;margin:0 4px;"></span>';
-        html += '<button type="button" class="btn btn-sm btn-outline-secondary wysi-btn" data-cmd="justifyLeft" title="Links"><i class="fa fa-align-left"></i></button>';
-        html += '<button type="button" class="btn btn-sm btn-outline-secondary wysi-btn" data-cmd="justifyCenter" title="Zentriert"><i class="fa fa-align-center"></i></button>';
-        html += '<button type="button" class="btn btn-sm btn-outline-secondary wysi-btn" data-cmd="justifyRight" title="Rechts"><i class="fa fa-align-right"></i></button>';
+        html += '<button type="button" class="btn btn-sm btn-outline-secondary wysi-btn" data-cmd="justifyLeft" title="Links"><i class="fa-solid fa-align-left"></i></button>';
+        html += '<button type="button" class="btn btn-sm btn-outline-secondary wysi-btn" data-cmd="justifyCenter" title="Zentriert"><i class="fa-solid fa-align-center"></i></button>';
+        html += '<button type="button" class="btn btn-sm btn-outline-secondary wysi-btn" data-cmd="justifyRight" title="Rechts"><i class="fa-solid fa-align-right"></i></button>';
         html += '<span style="border-left:1px solid #ccc;margin:0 4px;"></span>';
         html += '<select class="form-select form-select-sm wysi-select" id="wysiHeading" style="width:auto;min-width:100px;" title="Überschrift">';
         html += '<option value="">Normal</option><option value="1">H1</option><option value="2">H2</option><option value="3">H3</option><option value="4">H4</option>';
@@ -831,16 +870,16 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
         html += '<option value="">Größe</option><option value="1">Klein</option><option value="2">Normal</option><option value="3">Mittel</option><option value="4">Groß</option><option value="5">Sehr groß</option><option value="6">Riesig</option><option value="7">Maximum</option>';
         html += '</select>';
         html += '<span style="border-left:1px solid #ccc;margin:0 4px;"></span>';
-        html += '<label class="btn btn-sm btn-outline-secondary" title="Textfarbe" style="position:relative;overflow:hidden;"><i class="fa fa-font" style="color:#c00;"></i><input type="color" id="wysiFontColor" value="#000000" style="position:absolute;left:0;top:0;width:100%;height:100%;opacity:0;cursor:pointer;"></label>';
-        html += '<label class="btn btn-sm btn-outline-secondary" title="Hintergrundfarbe" style="position:relative;overflow:hidden;"><i class="fa fa-paint-brush"></i><input type="color" id="wysiBackColor" value="#ffff00" style="position:absolute;left:0;top:0;width:100%;height:100%;opacity:0;cursor:pointer;"></label>';
+        html += '<label class="btn btn-sm btn-outline-secondary" title="Textfarbe" style="position:relative;overflow:hidden;"><i class="fa-solid fa-font" style="color:#c00;"></i><input type="color" id="wysiFontColor" value="#000000" style="position:absolute;left:0;top:0;width:100%;height:100%;opacity:0;cursor:pointer;"></label>';
+        html += '<label class="btn btn-sm btn-outline-secondary" title="Hintergrundfarbe" style="position:relative;overflow:hidden;"><i class="fa-solid fa-paintbrush"></i><input type="color" id="wysiBackColor" value="#ffff00" style="position:absolute;left:0;top:0;width:100%;height:100%;opacity:0;cursor:pointer;"></label>';
         html += '<span style="border-left:1px solid #ccc;margin:0 4px;"></span>';
-        html += '<button type="button" class="btn btn-sm btn-outline-secondary wysi-btn" data-cmd="insertUnorderedList" title="Aufzählung"><i class="fa fa-list-ul"></i></button>';
-        html += '<button type="button" class="btn btn-sm btn-outline-secondary wysi-btn" data-cmd="insertOrderedList" title="Nummerierung"><i class="fa fa-list-ol"></i></button>';
-        html += '<button type="button" class="btn btn-sm btn-outline-secondary" id="wysiLinkBtn" title="Link einfügen"><i class="fa fa-link"></i></button>';
-        html += '<button type="button" class="btn btn-sm btn-outline-secondary wysi-btn" data-cmd="removeFormat" title="Formatierung entfernen"><i class="fa fa-eraser"></i></button>';
+        html += '<button type="button" class="btn btn-sm btn-outline-secondary wysi-btn" data-cmd="insertUnorderedList" title="Aufzählung"><i class="fa-solid fa-list-ul"></i></button>';
+        html += '<button type="button" class="btn btn-sm btn-outline-secondary wysi-btn" data-cmd="insertOrderedList" title="Nummerierung"><i class="fa-solid fa-list-ol"></i></button>';
+        html += '<button type="button" class="btn btn-sm btn-outline-secondary" id="wysiLinkBtn" title="Link einfügen"><i class="fa-solid fa-link"></i></button>';
+        html += '<button type="button" class="btn btn-sm btn-outline-secondary wysi-btn" data-cmd="removeFormat" title="Formatierung entfernen"><i class="fa-solid fa-eraser"></i></button>';
         html += '<span style="border-left:1px solid #ccc;margin:0 4px;"></span>';
-        html += '<button type="button" class="btn btn-sm btn-outline-secondary" id="wysiImageBtn" title="Bild einfügen"><i class="fa fa-image"></i></button>';
-        html += '<button type="button" class="btn btn-sm btn-outline-warning" id="wysiToggleSource" title="HTML-Quellcode anzeigen/bearbeiten"><i class="fa fa-code"></i></button>';
+        html += '<button type="button" class="btn btn-sm btn-outline-secondary" id="wysiImageBtn" title="Bild einfügen"><i class="fa-solid fa-image"></i></button>';
+        html += '<button type="button" class="btn btn-sm btn-outline-warning" id="wysiToggleSource" title="HTML-Quellcode anzeigen/bearbeiten"><i class="fa-solid fa-code"></i></button>';
         html += '</div>';
         // Editierbarer Bereich
         html += '<div id="promoWysiwyg" contenteditable="true" style="border:1px solid #dee2e6;border-radius:0 0 8px 8px;padding:12px 15px;min-height:120px;max-height:300px;overflow-y:auto;background:#fff;font-size:0.95rem;line-height:1.5;outline:none;">' + (currentPromoConfig.html_content || '') + '</div>';
@@ -864,8 +903,8 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
         html += '<label class="form-label fw-bold">Maximale Anzahl Produkte:</label>';
         html += '<input type="number" class="form-control" id="promoMaxItems" value="' + (currentPromoConfig.max_items || 3) + '" min="1" max="10" style="max-width:100px;">';
         html += '</div>';
-        html += '<div class="alert alert-info small"><i class="fa fa-info-circle"></i> Zeigt automatisch Sonderangebote mit Produktname und Rabatt-% aus dieser Kategorie.</div>';
-        html += '<button class="btn btn-outline-primary btn-sm" id="btnPreviewSpecials"><i class="fa fa-eye"></i> Vorschau laden</button>';
+        html += '<div class="alert alert-info small"><i class="fa-solid fa-circle-info"></i> Zeigt automatisch Sonderangebote mit Produktname und Rabatt-% aus dieser Kategorie.</div>';
+        html += '<button class="btn btn-outline-primary btn-sm" id="btnPreviewSpecials"><i class="fa-solid fa-eye"></i> Vorschau laden</button>';
         html += '<div class="promo-preview mt-2" id="promoSpecialPreview"></div>';
 
       } else if (type === 'new') {
@@ -873,8 +912,8 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
         html += '<label class="form-label fw-bold">Maximale Anzahl Produkte:</label>';
         html += '<input type="number" class="form-control" id="promoMaxItems" value="' + (currentPromoConfig.max_items || 3) + '" min="1" max="10" style="max-width:100px;">';
         html += '</div>';
-        html += '<div class="alert alert-info small"><i class="fa fa-info-circle"></i> Zeigt automatisch die neuesten Produkte aus dieser Kategorie.</div>';
-        html += '<button class="btn btn-outline-primary btn-sm" id="btnPreviewNew"><i class="fa fa-eye"></i> Vorschau laden</button>';
+        html += '<div class="alert alert-info small"><i class="fa-solid fa-circle-info"></i> Zeigt automatisch die neuesten Produkte aus dieser Kategorie.</div>';
+        html += '<button class="btn btn-outline-primary btn-sm" id="btnPreviewNew"><i class="fa-solid fa-eye"></i> Vorschau laden</button>';
         html += '<div class="promo-preview mt-2" id="promoNewPreview"></div>';
 
       } else {
