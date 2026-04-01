@@ -1876,7 +1876,7 @@ window.MRH_MOBILE_CONFIG = <?php echo $_mrh_mobile_config_js; ?>;
 .mrh-mobile-overlay.open { opacity: 1; visibility: visible; }
 
 .mrh-mobile-panel {
-  position: fixed; top: 0; left: 0; width: 85%; max-width: 360px; height: 100%;
+  position: fixed; top: 0; left: 0; width: 78%; max-width: 300px; height: 100%;
   background: #fafcfa; z-index: 99999;
   transform: translateX(-105%);
   transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1889,13 +1889,13 @@ window.MRH_MOBILE_CONFIG = <?php echo $_mrh_mobile_config_js; ?>;
 /* Header: Grüner Gradient mit Branding */
 .mrh-mobile-header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 18px 20px;
+  padding: 14px 16px;
   background: linear-gradient(135deg, #2d7a3a 0%, #1a5c28 100%);
   color: #fff;
   flex-shrink: 0;
 }
 .mrh-mobile-title {
-  font-size: 1.15rem; font-weight: 700; letter-spacing: 0.03em;
+  font-size: 1rem; font-weight: 700; letter-spacing: 0.03em;
 }
 .mrh-mobile-title i { margin-right: 6px; opacity: 0.9; }
 .mrh-mobile-close {
@@ -1905,23 +1905,25 @@ window.MRH_MOBILE_CONFIG = <?php echo $_mrh_mobile_config_js; ?>;
 }
 .mrh-mobile-close:hover { background: rgba(255,255,255,0.25); }
 
-/* Suchleiste */
+/* Suchleiste (rund wie Desktop) */
 .mrh-mobile-search {
-  padding: 12px 16px; background: #f0f5f0; border-bottom: 1px solid #e2e8e2;
+  padding: 10px 12px; background: #f0f5f0; border-bottom: 1px solid #e2e8e2;
   flex-shrink: 0;
 }
 .mrh-mobile-search-form {
-  display: flex; gap: 0; border-radius: 8px; overflow: hidden;
-  border: 1px solid #d0dcd0;
+  display: flex; gap: 0; border-radius: 50px; overflow: hidden;
+  border: 2px solid #2d7a3a;
+  background: #fff;
 }
 .mrh-mobile-search-input {
-  flex: 1; padding: 10px 14px; border: none; outline: none;
-  font-size: 0.9rem; background: #fff; color: #333;
+  flex: 1; padding: 8px 16px; border: none; outline: none;
+  font-size: 0.82rem; background: transparent; color: #333;
 }
 .mrh-mobile-search-input::placeholder { color: #999; }
 .mrh-mobile-search-btn {
   background: #2d7a3a; color: #fff; border: none;
-  padding: 10px 16px; cursor: pointer;
+  padding: 8px 16px; cursor: pointer;
+  border-radius: 0 50px 50px 0;
   transition: background 0.2s;
 }
 .mrh-mobile-search-btn:hover { background: #236b2f; }
@@ -1950,9 +1952,9 @@ window.MRH_MOBILE_CONFIG = <?php echo $_mrh_mobile_config_js; ?>;
 
 /* Links mit Icons */
 .mrh-mobile-link {
-  display: flex; align-items: center; gap: 12px;
-  padding: 14px 20px;
-  color: #333; text-decoration: none; font-size: 0.95rem;
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px;
+  color: #333; text-decoration: none; font-size: 0.88rem;
   font-weight: 500; transition: background 0.15s, color 0.15s;
 }
 .mrh-mobile-link:hover, .mrh-mobile-link:focus {
@@ -1962,10 +1964,10 @@ window.MRH_MOBILE_CONFIG = <?php echo $_mrh_mobile_config_js; ?>;
 /* Icon-Span */
 .mrh-mobile-icon {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 28px; height: 28px; flex-shrink: 0;
+  width: 24px; height: 24px; flex-shrink: 0;
   background: rgba(45, 122, 58, 0.08);
-  border-radius: 6px;
-  color: #2d7a3a; font-size: 0.85rem;
+  border-radius: 5px;
+  color: #2d7a3a; font-size: 0.78rem;
   transition: background 0.2s, color 0.2s;
 }
 .mrh-mobile-link:hover .mrh-mobile-icon {
