@@ -1921,6 +1921,11 @@ window.MRH_MOBILE_CONFIG = <?php echo $_mrh_mobile_config_js; ?>;
   transition: background 0.2s;
 }
 .mrh-mobile-search-btn:hover { background: #236b2f; }
+.mrh-mobile-search-input:focus { outline: none; }
+
+/* Global: Kein blauer Outline/Tap-Highlight im Mobile-Menü */
+.mrh-mobile-panel * { -webkit-tap-highlight-color: transparent; }
+.mrh-mobile-panel a:focus, .mrh-mobile-panel button:focus { outline: none; }
 
 /* Body */
 .mrh-mobile-body {
@@ -1950,9 +1955,14 @@ window.MRH_MOBILE_CONFIG = <?php echo $_mrh_mobile_config_js; ?>;
   padding: 12px 14px;
   color: #333; text-decoration: none; font-size: 0.88rem;
   font-weight: 500; transition: background 0.15s, color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
 }
 .mrh-mobile-link:hover, .mrh-mobile-link:focus {
-  background: #edf7ee; color: #2d7a3a;
+  background: #edf7ee; color: #2d7a3a; outline: none;
+}
+.mrh-mobile-link:active {
+  background: #dff0e0; color: #1a5c28;
 }
 
 /* Icon-Span */
@@ -1972,10 +1982,14 @@ window.MRH_MOBILE_CONFIG = <?php echo $_mrh_mobile_config_js; ?>;
 .mrh-mobile-toggle {
   background: none; border: none; border-left: 1px solid #eef2ee;
   padding: 0 16px; cursor: pointer; color: #999;
-  transition: color 0.2s;
+  transition: color 0.2s, background 0.15s;
   display: flex; align-items: center;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
 }
 .mrh-mobile-toggle:hover { color: #2d7a3a; }
+.mrh-mobile-toggle:focus { outline: none; }
+.mrh-mobile-toggle:active { background: #edf7ee; color: #2d7a3a; }
 .mrh-mobile-toggle i {
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
