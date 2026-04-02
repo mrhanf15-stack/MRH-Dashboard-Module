@@ -495,10 +495,12 @@ div.navibar,
 }
 
 /* ---- 04e: CatNavi verstecken ---- */
+/* FOUC-Fix v1.8.12: CatNavi erst verstecken wenn JS die Mega-Nav aufgebaut hat.
+   Die Klasse .mrh-mega-ready wird vom JS am <html>-Element gesetzt. */
 .mrh-nav-categories {
   display: contents;
 }
-.mrh-nav-categories .CatNavi {
+html.mrh-mega-ready .mrh-nav-categories .CatNavi {
   display: none !important;
 }
 

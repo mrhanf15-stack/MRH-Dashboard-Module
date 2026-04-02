@@ -655,7 +655,11 @@ window.MRH_MOBILE_CONFIG = <?php echo $_mrh_mobile_config_js; ?>;
         this.bar.appendChild(fragment);
       }
 
-      // Original CatNavi nur auf Desktop verstecken
+      // FOUC-Fix v1.8.12: Klasse am <html> setzen damit CSS die CatNavi versteckt.
+      // So bleibt die Original-Navigation sichtbar bis die Mega-Nav fertig aufgebaut ist.
+      document.documentElement.classList.add('mrh-mega-ready');
+
+      // Original CatNavi nur auf Desktop verstecken (inline-style als Backup)
       // Auf Mobile bleibt sie sichtbar fuer das RevPlus Slide-In-Menue
       if (window.innerWidth > 991) {
         catWrap.style.display = 'none';
