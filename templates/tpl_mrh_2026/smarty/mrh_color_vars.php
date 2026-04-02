@@ -67,15 +67,19 @@ foreach ($colors as $key => $value) {
 
 // Zusätzliche Alias-Variablen für mrh-custom.css Kompatibilität
 $aliases = [
-    'tpl-main-color'   => 'mrh-primary',
-    'tpl-main-color-2' => 'mrh-primary-dark',
+    'tpl-main-color'      => 'mrh-primary',
+    'tpl-main-color-2'    => 'mrh-primary-dark',
     'tpl-secondary-color' => 'mrh-primary-light',
-    'tpl-topbar-bg'    => 'mrh-topbar-bg',
-    'tpl-topbar-text'  => 'mrh-topbar-text',
-    'tpl-sticky-bg'    => 'mrh-sticky-bg',
-    'tpl-sticky-text'  => 'mrh-sticky-text',
-    'tpl-bg-footer'    => 'mrh-bg-footer',
-    'tpl-text-footer'  => 'mrh-text-footer',
+    'tpl-topbar-bg'       => 'mrh-topbar-bg',
+    'tpl-topbar-text'     => 'mrh-topbar-text',
+    'tpl-sticky-bg'       => 'mrh-sticky-bg',
+    'tpl-sticky-text'     => 'mrh-sticky-text',
+    'tpl-bg-footer'       => 'mrh-bg-footer',
+    'tpl-text-footer'     => 'mrh-text-footer',
+    'tpl-menu-bg'         => 'mrh-menu-bg',
+    'tpl-menu-text'       => 'mrh-menu-text',
+    'tpl-menu-hover'      => 'mrh-menu-hover',
+    'tpl-menu-active'     => 'mrh-menu-active',
 ];
 
 foreach ($aliases as $tpl_key => $mrh_key) {
