@@ -1,0 +1,4 @@
+FSB_TEXT_REMAINING = 'Only <span class="fsb-amount">{#FSB_AMOUNT#}</span> more for free shipping!'
+FSB_TEXT_REACHED = 'Congratulations! Free shipping!'
+FSB_TEXT_FREE_SHIPPING = 'Free shipping'
+FSB_TEXT_CLOSE = 'Close'
