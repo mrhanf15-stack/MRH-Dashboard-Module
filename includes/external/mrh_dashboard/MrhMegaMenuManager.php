@@ -142,6 +142,25 @@ class MrhMegaMenuManager
     }
 
     /**
+     * Holt rekursiv alle Unterkategorie-IDs (nur IDs, fuer SQL IN-Klausel).
+     * v1.8.3: Neue Hilfsmethode fuer Specials/New Products
+     */
+    public function getAllChildCategoryIds($parent_id)
+    {
+        $ids = array();
+        $query = 'SELECT categories_id FROM ' . TABLE_CATEGORIES . '
+                  WHERE parent_id = ' . (int)$parent_id . '
+                    AND categories_status = 1';
+        $result = xtc_db_query($query);
+        while ($row = xtc_db_fetch_array($result)) {
+            $ids[] = (int)$row['categories_id'];
+            $child_ids = $this->getAllChildCategoryIds((int)$row['categories_id']);
+            $ids = array_merge($ids, $child_ids);
+        }
+        return $ids;
+    }
+
+    /**
      * Holt die SEO-URL fuer eine Kategorie aus der clean_seo_url Tabelle.
      * Gibt die saubere URL zurueck (z.B. 'samen-shop/autoflowering-samen/')
      * oder null wenn keine SEO-URL existiert.
@@ -476,6 +495,10 @@ class MrhMegaMenuManager
     public function getSpecialProducts($parent_category_id, $max = 3)
     {
         $products = array();
+        // v1.8.3: Rekursive Unterkategorie-Suche fuer tiefe Kategorie-Baeume
+        $all_cat_ids = $this->getAllChildCategoryIds((int)$parent_category_id);
+        $all_cat_ids[] = (int)$parent_category_id;
+        $cat_ids_str = implode(',', array_map('intval', $all_cat_ids));
         $query = 'SELECT p.products_id, pd.products_name, p.products_price, p.products_image,
                          s.specials_new_products_price, s.specials_old_products_price
                   FROM specials s
@@ -486,11 +509,7 @@ class MrhMegaMenuManager
                   WHERE s.status = 1
                     AND p.products_status = 1
                     AND (s.expires_date > NOW() OR s.expires_date IS NULL OR s.expires_date = "0000-00-00 00:00:00")
-                    AND p2c.categories_id IN (
-                        SELECT categories_id FROM ' . TABLE_CATEGORIES . '
-                        WHERE parent_id = ' . (int)$parent_category_id . '
-                           OR categories_id = ' . (int)$parent_category_id . '
-                    )
+                    AND p2c.categories_id IN (' . $cat_ids_str . ')
                   ORDER BY RAND()
                   LIMIT ' . (int)$max;
         $result = xtc_db_query($query);
@@ -516,17 +535,17 @@ class MrhMegaMenuManager
     public function getNewProducts($parent_category_id, $max = 3)
     {
         $products = array();
+        // v1.8.3: Rekursive Unterkategorie-Suche fuer tiefe Kategorie-Baeume
+        $all_cat_ids = $this->getAllChildCategoryIds((int)$parent_category_id);
+        $all_cat_ids[] = (int)$parent_category_id;
+        $cat_ids_str = implode(',', array_map('intval', $all_cat_ids));
         $query = 'SELECT p.products_id, pd.products_name, p.products_price, p.products_image, p.products_date_added
                   FROM ' . TABLE_PRODUCTS . ' p
                   JOIN ' . TABLE_PRODUCTS_DESCRIPTION . ' pd ON p.products_id = pd.products_id
                     AND pd.language_id = ' . $this->language_id . '
                   JOIN ' . TABLE_PRODUCTS_TO_CATEGORIES . ' p2c ON p.products_id = p2c.products_id
                   WHERE p.products_status = 1
-                    AND p2c.categories_id IN (
-                        SELECT categories_id FROM ' . TABLE_CATEGORIES . '
-                        WHERE parent_id = ' . (int)$parent_category_id . '
-                           OR categories_id = ' . (int)$parent_category_id . '
-                    )
+                    AND p2c.categories_id IN (' . $cat_ids_str . ')
                   ORDER BY p.products_date_added DESC
                   LIMIT ' . (int)$max;
         $result = xtc_db_query($query);

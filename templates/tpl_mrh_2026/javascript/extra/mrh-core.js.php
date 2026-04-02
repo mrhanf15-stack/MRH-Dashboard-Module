@@ -1053,14 +1053,15 @@ window.MRH_MOBILE_CONFIG = <?php echo $_mrh_mobile_config_js; ?>;
           promo.innerHTML = '<div class="mrh-mega-promo-inner">' + p.html + '</div>';
 
         } else if (p.type === 'banner' && p.banner) {
-          // Banner-Bild oder HTML
+          // Banner-Bild oder HTML (v1.8.3: Bildpfad-Fix)
           var inner = '<div class="mrh-mega-promo-inner">';
           if (p.banner.html_text) {
             inner += p.banner.html_text;
           } else if (p.banner.image) {
-            var imgUrl = '/' + p.banner.image;
+            var imgPath = p.banner.image;
+            if (imgPath.indexOf('/') === -1) imgPath = 'images/banner/' + imgPath;
             inner += '<a href="' + (p.banner.url || '#') + '">';
-            inner += '<img src="' + imgUrl + '" alt="' + (p.banner.title || '') + '" style="max-width:100%;border-radius:8px;">';
+            inner += '<img src="/' + imgPath + '" alt="' + (p.banner.title || '') + '" style="max-width:100%;border-radius:8px;">';
             inner += '</a>';
           }
           inner += '</div>';
@@ -1590,15 +1591,7 @@ window.MRH_MOBILE_CONFIG = <?php echo $_mrh_mobile_config_js; ?>;
 
       body.appendChild(navList);
 
-      // === Konto-Bereich ===
-      var accountSection = document.createElement('div');
-      accountSection.className = 'mrh-mobile-account';
-      accountSection.innerHTML = '<div class="mrh-mobile-account-title"><i class="fa-solid fa-user"></i> Mein Konto</div>' +
-        '<div class="mrh-mobile-account-links">' +
-        '<a href="/login.php" class="mrh-mobile-account-link"><i class="fa-solid fa-right-to-bracket"></i> Anmelden</a>' +
-        '<a href="/create_account.php" class="mrh-mobile-account-link"><i class="fa-solid fa-user-plus"></i> Registrieren</a>' +
-        '</div>';
-      body.appendChild(accountSection);
+      // Konto-Bereich entfernt (v1.8.3) – Login/Registrierung über Header-Icons
 
       // === Promo-Bereich UNTEN ===
       var bottomPromos = mobilePromos.filter(function(p) { return p.position === 'bottom'; });
@@ -1615,8 +1608,34 @@ window.MRH_MOBILE_CONFIG = <?php echo $_mrh_mobile_config_js; ?>;
       // === Footer-Info ===
       var footerInfo = document.createElement('div');
       footerInfo.className = 'mrh-mobile-footer';
-      footerInfo.innerHTML = '<div class="mrh-mobile-footer-item"><i class="fa-solid fa-phone"></i> +43 660 1234567</div>' +
-        '<div class="mrh-mobile-footer-item"><i class="fa-solid fa-truck-fast"></i> Versand: Österreich</div>';
+      // Versandland dynamisch aus Shop-Einstellungen (v1.8.3)
+      // modified eCommerce: Lieferland aus Session oder Shop-Default
+      var _shippingCountry = '<?php
+        $_mrh_country = "";
+        // 1. Aus Lieferadresse (eingeloggt + Lieferland gewaehlt)
+        if (isset($_SESSION["delivery_country_id"]) && (int)$_SESSION["delivery_country_id"] > 0) {
+          $_mrh_country = xtc_get_country_name((int)$_SESSION["delivery_country_id"]);
+        }
+        // 2. Aus Kundenland (eingeloggt)
+        elseif (isset($_SESSION["customer_country_id"]) && (int)$_SESSION["customer_country_id"] > 0) {
+          $_mrh_country = xtc_get_country_name((int)$_SESSION["customer_country_id"]);
+        }
+        // 3. Aus Laenderauswahl im Einstellungen-Panel
+        elseif (isset($_SESSION["customers_country_code"]) && $_SESSION["customers_country_code"] !== "") {
+          $__cc = xtc_db_query("SELECT countries_name FROM countries WHERE countries_iso_code_2 = \"" . xtc_db_input($_SESSION["customers_country_code"]) . "\" LIMIT 1");
+          $__cr = xtc_db_fetch_array($__cc);
+          if ($__cr) $_mrh_country = $__cr["countries_name"];
+        }
+        // 4. Shop-Default
+        if (!$_mrh_country && defined("STORE_COUNTRY")) {
+          $_mrh_country = xtc_get_country_name((int)STORE_COUNTRY);
+        }
+        if (!$_mrh_country) $_mrh_country = "\u00d6sterreich";
+        echo addslashes($_mrh_country);
+      ?>';
+      var _shopPhone = '<?php echo addslashes(defined("STORE_OWNER_PHONE") ? STORE_OWNER_PHONE : "+43 512 312 411"); ?>';
+      footerInfo.innerHTML = '<div class="mrh-mobile-footer-item"><i class="fa-solid fa-phone"></i> ' + _shopPhone + '</div>' +
+        '<div class="mrh-mobile-footer-item"><i class="fa-solid fa-truck-fast"></i> Versand: ' + _shippingCountry + '</div>';
       body.appendChild(footerInfo);
 
       this.panel.appendChild(body);
@@ -1639,8 +1658,11 @@ window.MRH_MOBILE_CONFIG = <?php echo $_mrh_mobile_config_js; ?>;
         var b = promo.banner;
         var inner = '';
         if (b.image) {
+          // Banner-Bilder liegen unter /images/banner/ (v1.8.3 Fix)
+          var imgPath = b.image;
+          if (imgPath.indexOf('/') === -1) imgPath = 'images/banner/' + imgPath;
           inner = '<a href="' + (b.url || '#') + '" class="mrh-mobile-promo-banner">';
-          inner += '<img src="/' + b.image + '" alt="' + this._escHtml(b.title || '') + '" loading="lazy">';
+          inner += '<img src="/' + imgPath + '" alt="' + this._escHtml(b.title || '') + '" loading="lazy" style="max-width:100%;border-radius:8px;">';
           inner += '</a>';
         } else if (b.html_text) {
           inner = b.html_text;
@@ -2026,39 +2048,7 @@ window.MRH_MOBILE_CONFIG = <?php echo $_mrh_mobile_config_js; ?>;
 }
 .mrh-mobile-l3-sub { background: #f0f3f0; }
 
-/* Konto-Bereich */
-.mrh-mobile-account {
-  margin: 12px 16px; padding: 14px 16px;
-  background: #fff; border: 1px solid #e2e8e2;
-  border-radius: 10px;
-}
-.mrh-mobile-account-title {
-  font-size: 0.85rem; font-weight: 600; color: #555;
-  margin-bottom: 10px; padding-bottom: 8px;
-  border-bottom: 1px solid #eef2ee;
-}
-.mrh-mobile-account-title i { color: #2d7a3a; margin-right: 6px; }
-.mrh-mobile-account-links {
-  display: flex; gap: 8px;
-}
-.mrh-mobile-account-link {
-  flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
-  padding: 10px 12px; border-radius: 8px;
-  font-size: 0.85rem; font-weight: 500;
-  text-decoration: none; transition: all 0.2s;
-}
-.mrh-mobile-account-link:first-child {
-  background: #2d7a3a; color: #fff;
-}
-.mrh-mobile-account-link:first-child:hover {
-  background: #236b2f;
-}
-.mrh-mobile-account-link:last-child {
-  background: #f0f5f0; color: #2d7a3a; border: 1px solid #d0dcd0;
-}
-.mrh-mobile-account-link:last-child:hover {
-  background: #e0ede0;
-}
+/* Konto-Bereich entfernt (v1.8.3) */
 
 /* Promo-Bereiche */
 .mrh-mobile-promo {
