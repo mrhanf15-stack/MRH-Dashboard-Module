@@ -11,6 +11,7 @@
    - Header-Bar: Uebernimmt bestehenden #mrh-shipping-bar Container
    - 100% Vanilla JS (kein jQuery)
    
+   v1.5.2: Position Fix - zwischen Topbar und Header (Position 02 im Wireframe)
    v1.5.1: Fix ReferenceError fsbThresholdFormatted, initiale Anzeige ohne Betrag
    v1.5.0: Header-Bar auf allen Seiten per JS erstellen, CSS-Klassen Fix, Container-Padding
    v1.4.2: Fixierter Balken komplett per PHP deaktiviert (tpl_mrh_2026 nutzt Header-Bar)
@@ -55,7 +56,7 @@ if (defined('MODULE_FREE_SHIPPING_BAR_STATUS') && MODULE_FREE_SHIPPING_BAR_STATU
     $fsb_lang = isset($_SESSION['language']) ? $_SESSION['language'] : 'german';
 ?>
 <style>
-/* ===== FreeShippingBar v1.5.1-mrh2026 ===== */
+/* ===== FreeShippingBar v1.5.2-mrh2026 ===== */
 
 /* ===== Fixierter Balken (unten/oben) ===== */
 #fsb-container {
@@ -305,16 +306,18 @@ if (defined('MODULE_FREE_SHIPPING_BAR_STATUS') && MODULE_FREE_SHIPPING_BAR_STATU
         '</span>' +
       '</div>';
       
-      // Einfuegen: nach .mrh-mega-nav-bar oder nach #topbar, vor #main-header
-      var megaNav = document.querySelector('.mrh-mega-nav-bar');
+      // Einfuegen: zwischen Topbar (01) und Header (03) = Position 02 im Wireframe
       var mainHeader = document.getElementById('main-header');
-      if (megaNav && megaNav.parentNode) {
-        megaNav.parentNode.insertBefore(headerBar, megaNav.nextSibling);
-      } else if (mainHeader && mainHeader.parentNode) {
+      if (mainHeader && mainHeader.parentNode) {
         mainHeader.parentNode.insertBefore(headerBar, mainHeader);
       } else {
-        // Fallback: An den Anfang des Body
-        document.body.insertBefore(headerBar, document.body.firstChild);
+        // Fallback: nach #topbar
+        var topbar = document.getElementById('topbar');
+        if (topbar && topbar.parentNode) {
+          topbar.parentNode.insertBefore(headerBar, topbar.nextSibling);
+        } else {
+          document.body.insertBefore(headerBar, document.body.firstChild);
+        }
       }
     } else {
       // Container existiert: data-fsb Attribute auf bestehende Elemente setzen
