@@ -11,6 +11,7 @@
    - Header-Bar: Uebernimmt bestehenden #mrh-shipping-bar Container
    - 100% Vanilla JS (kein jQuery)
    
+   v1.4.1: Fixierter Balken deaktiviert wenn Header-Bar vorhanden
    v1.4.0: Header-Bar Integration (#mrh-shipping-bar), Offcanvas-Warenkorb
    v1.3.2: Polling von 5s auf 30s, Tab-Visibility-Check
    
@@ -54,7 +55,7 @@ if (defined('MODULE_FREE_SHIPPING_BAR_STATUS') && MODULE_FREE_SHIPPING_BAR_STATU
     $fsb_lang = isset($_SESSION['language']) ? $_SESSION['language'] : 'german';
 ?>
 <style>
-/* ===== FreeShippingBar v1.4.0-mrh2026 ===== */
+/* ===== FreeShippingBar v1.4.1-mrh2026 ===== */
 
 /* ===== Fixierter Balken (unten/oben) ===== */
 #fsb-container {
@@ -297,6 +298,9 @@ if (defined('MODULE_FREE_SHIPPING_BAR_STATUS') && MODULE_FREE_SHIPPING_BAR_STATU
     
     // data-fsb Attribute setzen fuer CSS-Targeting
     headerBar.setAttribute('data-fsb-active', 'true');
+    
+    // Fixierten Balken deaktivieren – Header-Bar uebernimmt
+    fsbShowFixed = false;
     
     // Bestehende Elemente finden
     var textEl = headerBar.querySelector('.mrh-shipping-text');
