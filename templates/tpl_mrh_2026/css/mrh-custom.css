@@ -533,7 +533,28 @@ div.navibar,
   font-weight: 600;
   font-size: 14px;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
+/* Icons per CSS ::before fuer CatNavi Level-1 (FA7 Pro Unicode) */
+.mrh-nav-categories .CatNavi > li > a::before {
+  font-family: 'Font Awesome 7 Pro';
+  font-weight: 900;
+  font-size: 13px;
+  opacity: 0.85;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  display: inline-block;
+}
+/* Samen Shop → fa-seedling */
+.mrh-nav-categories .CatNavi > li > a[href*="samen-shop"]::before { content: '\f4d8'; }
+/* Cannabispflanzen → fa-cannabis */
+.mrh-nav-categories .CatNavi > li > a[href*="cannabispflanz"]::before { content: '\f55f'; }
+/* Growshop → fa-sun */
+.mrh-nav-categories .CatNavi > li > a[href*="growshop"]::before { content: '\f185'; }
+/* Headshop → fa-bong */
+.mrh-nav-categories .CatNavi > li > a[href*="headshop"]::before { content: '\f55c'; }
 /* Gesamte CatNavi erst verstecken wenn JS die Mega-Nav aufgebaut hat */
 html.mrh-mega-ready .mrh-nav-categories .CatNavi {
   display: none !important;
