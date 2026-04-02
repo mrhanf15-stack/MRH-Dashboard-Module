@@ -14,6 +14,12 @@
    v1.7.0: Hamburger-Button Styling Fix (gleiche Größe wie Header-Icons)
    ============================================================ */
 
+// ---- MrhMegaMenuManager laden fuer dynamische Promo-Daten (Specials/New) ----
+$_mrh_mgr_file = DIR_FS_CATALOG . 'includes/external/mrh_dashboard/MrhMegaMenuManager.php';
+if (file_exists($_mrh_mgr_file) && !class_exists('MrhMegaMenuManager')) {
+    require_once($_mrh_mgr_file);
+}
+
 // ---- Mega-Menu Config direkt einlesen (statt separate JS-Datei) ----
 // Damit ist die Variable GARANTIERT verfügbar bevor das Script läuft.
 $_mrh_megamenu_js = '';
