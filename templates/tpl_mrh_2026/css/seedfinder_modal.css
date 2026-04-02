@@ -1,0 +1,163 @@
+/**
+ * Seedfinder Modal CSS - tpl_mrh_2026 (BS5.3 + CSS-Variablen)
+ * Version: 32.0.0-bs5
+ * Datum: 2026-04-02
+ * 
+ * Migration:
+ * - Hardcoded Farben → CSS-Variablen
+ * - BS5.3 Modal-Klassen kompatibel
+ */
+
+/* ========================================
+   MODAL GRUNDSTRUKTUR
+   ======================================== */
+#seedfinderFilterModal .modal-dialog {
+    max-width: 95%;
+    margin: 1.75rem auto;
+}
+
+#seedfinderFilterModal .modal-content {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+
+#seedfinderFilterModal .modal-header {
+    background: var(--sf-accordion-active, var(--mrh-primary, #5db233));
+    color: #fff;
+    border-radius: 12px 12px 0 0;
+    padding: 15px 20px;
+}
+
+#seedfinderFilterModal .modal-header .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+#seedfinderFilterModal .modal-title {
+    font-weight: 600;
+}
+
+#seedfinderFilterModal .modal-body {
+    padding: 20px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+#seedfinderFilterModal .modal-footer {
+    border-top: 1px solid var(--sf-accordion-border, #dee2e6);
+    padding: 15px 20px;
+    background: var(--sf-accordion-bg, #f8f9fa);
+    border-radius: 0 0 12px 12px;
+}
+
+/* ========================================
+   FILTER-GRUPPEN IM MODAL
+   ======================================== */
+.filter-group {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--sf-accordion-border, #dee2e6);
+}
+
+.filter-group:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.filter-group-title {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 10px;
+    color: var(--bs-body-color, #333);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filter-group-title .badge {
+    font-size: 0.75rem;
+}
+
+/* ========================================
+   FILTER CHECKBOXEN IM MODAL
+   ======================================== */
+.filter-group .form-check {
+    padding: 4px 0;
+    padding-left: 1.5rem;
+}
+
+.filter-group .form-check-input {
+    border-color: var(--sf-accordion-border, #dee2e6);
+}
+
+.filter-group .form-check-input:checked {
+    background-color: var(--sf-accordion-active, var(--mrh-primary, #5db233));
+    border-color: var(--sf-accordion-active, var(--mrh-primary, #5db233));
+}
+
+.filter-group .form-check-label {
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+/* ========================================
+   MODAL FILTER CHIPS (Aktive Filter)
+   ======================================== */
+.modal-active-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: var(--sf-accordion-bg, #f8f9fa);
+    border-radius: 8px;
+}
+
+.modal-filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    background: var(--sf-accordion-active, var(--mrh-primary, #5db233));
+    color: #fff;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.modal-filter-chip .remove-chip {
+    cursor: pointer;
+    font-weight: bold;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+}
+
+.modal-filter-chip .remove-chip:hover {
+    opacity: 1;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 767px) {
+    #seedfinderFilterModal .modal-dialog {
+        max-width: 100%;
+        margin: 0;
+    }
+    
+    #seedfinderFilterModal .modal-content {
+        border-radius: 0;
+        min-height: 100vh;
+    }
+    
+    #seedfinderFilterModal .modal-header {
+        border-radius: 0;
+    }
+    
+    #seedfinderFilterModal .modal-footer {
+        border-radius: 0;
+        position: sticky;
+        bottom: 0;
+    }
+}

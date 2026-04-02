@@ -1,0 +1,149 @@
+{* 
+ * Seedfinder Product Cards Template - Vergleichsseiten-Design
+ * Version: 32.2.0-bs5 (tpl_mrh_2026)
+ * Datum: 2026-04-02
+ * 
+ * BS5.3 + FA7 Pro Migration:
+ * - mr-* → me-*, ml-* → ms-*
+ * - text-right → text-end
+ * - font-weight-bold → fw-bold
+ * - badge-danger → bg-danger text-white
+ * - bg-white → bg-body
+ * - fa fa-* → fa-solid fa-* (neue Icon-Namen)
+ * - Alle Icons in <span> Tags
+ *}
+    {foreach from=$PRODUCTS item=product}
+                <div class="col-md-6 mb-4 listingbox" itemscope itemtype="https://schema.org/Product">
+                    <div class="card h-100 d-flex flex-column">
+                        
+                        {* Hidden Schema.org Properties *}
+                        {if $product.PRODUCTS_MODEL}
+                        <meta itemprop="sku" content="{$product.PRODUCTS_MODEL|escape:'html'}">
+                        {/if}
+                        <link itemprop="url" href="{$smarty.server.REQUEST_SCHEME}://{$smarty.server.HTTP_HOST}/{$product.PRODUCTS_LINK}">
+                        
+                        {* Spezialpreis-Badge *}
+                        {if $product.PRODUCTS_SPECIAL_PRICE && $product.PRODUCTS_SPECIAL_PRICE > 0}
+                        <div class="ribbon bg-danger text-white shadow-sm sf-special-badge">
+                            {#special_badge#}
+                            <div class="sf-special-badge-triangle"></div>
+                        </div>
+                        {/if}
+                        
+                        {* Rabatt-Prozent Badge *}
+                        {if $product.PRODUCTS_PRICE_SAVE_PERCENT && $product.PRODUCTS_PRICE_SAVE_PERCENT > 0}
+                        <span class="special_percent bg-danger shadow text-white">
+                            {$product.PRODUCTS_PRICE_SAVE_PERCENT}%
+                        </span>
+                        {/if}
+                        
+                        {* Produktbild - Fixed Height, Object-Fit Cover (wie Vergleichsseite) *}
+                        {if $product.PRODUCTS_IMAGE}
+                        <a href="{$product.PRODUCTS_LINK}" class="card-body text-center lb_image compare-img-box">
+                            <img class="compare-product-img img-fluid lazyloaded" itemprop="image" src="{$product.PRODUCTS_IMAGE}" alt="{$product.PRODUCTS_NAME}" title="{$product.PRODUCTS_NAME}">
+                        </a>
+                        {/if}
+                        
+                        {* Produktname und Hersteller (wie Vergleichsseite) *}
+                        <div class="card-body pt-0 pb-1">
+                            <h2 class="lb_title lead text-secondary mb-1">
+                                <a href="{$product.PRODUCTS_LINK}" class="text-decoration-none">
+                                    <span itemprop="name">{$product.PRODUCTS_NAME}</span>
+                                </a>
+                            </h2>
+                            {if $product.MANUFACTURERS_NAME}
+                                <footer class="blockquote-footer mb-1" itemprop="brand" itemscope itemtype="https://schema.org/Brand">
+                                    <cite title="{$product.PRODUCTS_NAME} - {$product.MANUFACTURERS_NAME}"><span itemprop="name">{$product.MANUFACTURERS_NAME}</span></cite>
+                                </footer>
+                            {/if}
+                        </div>
+                        
+                        {* Short Description als Tabelle (wie Vergleichsseite: Kreuzung, Sorte, Blütezeit etc.) *}
+                        {if $product.PRODUCTS_SHORT_DESCRIPTION}
+                        <div class="card-body pt-0 pb-1 compare-desc-box">
+                            <div class="lr_desc teabls table-striped" itemprop="description">{$product.PRODUCTS_SHORT_DESCRIPTION}</div>
+                        </div>
+                        {elseif $product.PRODUCTS_DESCRIPTION}
+                        <div class="card-body pt-0 pb-1 compare-desc-box">
+                            <div class="lr_desc teabls table-striped" itemprop="description">{$product.PRODUCTS_DESCRIPTION}</div>
+                        </div>
+                        {/if}
+                        
+                        {* Options, Preis, Buttons - Card-Footer am unteren Rand (wie Vergleichsseite) *}
+                        <div class="card-footer bg-body mt-auto compare-footer" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+                            <meta itemprop="priceCurrency" content="EUR">
+                            <link itemprop="url" href="{$smarty.server.REQUEST_SCHEME}://{$smarty.server.HTTP_HOST}/{$product.PRODUCTS_LINK}">
+                            <link itemprop="availability" href="{if $product.TOTAL_STOCK_AVAILABLE}https://schema.org/InStock{else}https://schema.org/OutOfStock{/if}">
+                            
+                            {* Attribute/Optionen (1 Samen, 3 Samen etc. mit Preisen) *}
+                            {if $product.HAS_ATTRIBUTES && $product.ATTRIBUTES|@count > 0}
+                            <div class="mb-2">
+                                <div class="attribute-text-list">
+                                    {foreach $product.ATTRIBUTES as $attr}
+                                    <div class="attribute-text-item mb-1 d-flex justify-content-between align-items-start">
+                                        <span class="attribute-value">{$attr.value_name}</span>
+                                        <div class="text-end">
+                                            {if $attr.old_price && $attr.old_price != ''}
+                                                <div class="text-muted small"><del>{$attr.old_price}</del></div>
+                                                <div class="text-danger fw-bold">{$attr.price}</div>
+                                            {else}
+                                                <span class="attribute-price">{$attr.price}</span>
+                                            {/if}
+                                            {if $attr.stock < 10 && $attr.stock > 0}
+                                                <small class="text-warning d-block">({#only_x_available#|replace:'{stock}':$attr.stock})</small>
+                                            {elseif $attr.stock <= 0}
+                                                <small class="text-danger d-block">{#sold_out_badge#}</small>
+                                            {/if}
+                                        </div>
+                                    </div>
+                                    {/foreach}
+                                </div>
+                            </div>
+                            {/if}
+                            
+                            {* Preis-Anzeige *}
+                            <div class="text-end mt-2 mb-2">
+                                {if $product.HAS_PRICE_FROM}
+                                    {if $product.PRODUCTS_SPECIAL_PRICE && $product.PRODUCTS_SPECIAL_PRICE > 0}
+                                        <div class="text-muted small"><del>{$product.PRODUCTS_PRICE_OLD}</del></div>
+                                        <div class="text-danger fw-bold h5 mb-0">
+                                            {if $product.PRICE_FROM_COUNT > 1}{#from_price_prefix#} {/if}<span itemprop="price" content="{$product.PRICE_FROM|regex_replace:'/[^0-9,]/':''|regex_replace:'/,/':'.'}">{$product.PRICE_FROM}</span>
+                                        </div>
+                                    {else}
+                                        {if $product.PRICE_FROM_COUNT > 1}<span class="text-success sf-price-prefix">{#from_price_prefix#} </span>{/if}<strong class="text-success sf-price-main"><span itemprop="price" content="{$product.PRICE_FROM|regex_replace:'/[^0-9,]/':''|regex_replace:'/,/':'.'}">{$product.PRICE_FROM}</span></strong>
+                                    {/if}
+                                {elseif !$product.TOTAL_STOCK_AVAILABLE}
+                                    <span class="badge bg-danger text-white sf-price-badge">
+                                        <span class="fa-solid fa-circle-xmark me-1"></span>{#sold_out_badge#}
+                                    </span>
+                                {/if}
+                                <div class="lb_tax text-secondary small mb-1">{#tax_info#}</div>
+                            </div>
+                            
+                            {* Buttons: Warenkorb + Merkzettel + Details + Vergleichen (wie Vergleichsseite) *}
+                            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                                <div>
+                                    {if $product.TOTAL_STOCK_AVAILABLE}
+                                    <a href="{$product.PRODUCTS_LINK}" class="btn btn-sm btn-outline-success me-1" title="{#cart_button_title#}">
+                                        <span class="fa-solid fa-cart-shopping"></span>
+                                    </a>
+                                    {/if}
+                                    <a href="{$product.PRODUCTS_LINK}#wishlist" class="btn btn-sm btn-outline-secondary me-1" title="{#wishlist_button_title#}">
+                                        <span class="fa-solid fa-heart"></span>
+                                    </a>
+                                </div>
+                                <div>
+                                    <a href="{$product.PRODUCTS_LINK}" class="btn btn-info btn-sm me-1">
+                                        <span class="fa-solid fa-eye me-1"></span>{#details_button#}
+                                    </a>
+                                    <button type="button" class="btn-compare btn btn-sm" data-product-id="{$product.PRODUCTS_ID}" title="{#compare_button_title#}">
+                                        <span class="fa-solid fa-scale-balanced me-1"></span>{#compare_button#}
+                                    </button>
+                                </div>
+                            </div>
+                            
+                        </div>
+                        
+                    </div>
+                </div>
+    {/foreach}

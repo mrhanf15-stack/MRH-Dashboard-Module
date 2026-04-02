@@ -1,0 +1,34 @@
+/**
+ * Seedfinder v6.7.0 - Disabled Accordion Headers CSS
+ * Graue Accordion-Header aus wenn keine Filter verfügbar sind
+ * Datum: 09. Februar 2026
+ * Autor: Mr. Hanf / Manus AI
+ */
+
+/* Ausgegrauter Accordion-Header */
+.accordion-filter-header.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: #f8f9fa !important;
+    color: #6c757d !important;
+}
+
+/* Hover-Effekt deaktivieren */
+.accordion-filter-header.disabled:hover {
+    background-color: #f8f9fa !important;
+    color: #6c757d !important;
+}
+
+/* Icon ausgrauen */
+.accordion-filter-header.disabled i,
+.accordion-filter-header.disabled .fa,
+.accordion-filter-header.disabled .fas,
+.accordion-filter-header.disabled .far {
+    color: #6c757d !important;
+}
+
+/* Badge ausgrauen */
+.accordion-filter-header.disabled .badge {
+    background-color: #dee2e6 !important;
+    color: #6c757d !important;
+}

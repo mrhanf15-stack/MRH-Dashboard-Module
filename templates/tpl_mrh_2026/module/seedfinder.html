@@ -1,0 +1,277 @@
+{config_load file="$language/lang_$language.conf" section="seedfinder"}
+{config_load file="lang_`$language`.custom"}
+{config_load file="lang_`$language`.section" section="seedfinder"}
+
+<link rel="stylesheet" href="{$tpl_path}css/b4.css">
+<link rel="stylesheet" href="{$tpl_path}/css/seedfinder-combined.min.css">
+<script src="{$tpl_path}javascript/seedfinder_colors.js" defer></script>
+<script src="{$tpl_path}javascript/seedfinder-cards.js" defer></script>
+
+
+{if $STAGE == 1 || $STAGE == 2}
+<script src="{$tpl_path}javascript/seedfinder-beginner-with-results.js" defer></script>
+{/if}
+{if $STAGE == 2}
+<script src="{$tpl_path}javascript/seedfinder_ajax.js" defer></script>
+<script src="{$tpl_path}javascript/seedfinder_modal.js" defer></script>
+<script src="{$tpl_path}javascript/seedfinder_mobile_reset.js" defer></script>
+{/if}
+
+<div id="seedfinder_module">
+
+{if $STAGE == 1}
+    <h1>{#title#}</h1>
+    
+   
+    
+    {if $STAGE == 1}{1003279|contentAnywhere|inserttags}{/if}
+    
+    
+    <!-- ============================================================ -->
+    <!-- ANFÄNGER/PROFI FINDER CARDS (NUR FÜR ADMINS - IN ENTWICKLUNG) -->
+    <!-- ============================================================ -->
+    {include file="`$smarty.const.CURRENT_TEMPLATE`/module/seedfinder-cards.html"}
+     {if !empty(#subtitle#)}<div class="info mb-3">{#subtitle#}</div>{/if}
+    {if $STAGE == 1}
+    {include file="`$smarty.const.CURRENT_TEMPLATE`/module/seedfinder_beginner-wizard-modal-with-results.html"}
+    {/if}
+    
+    
+    <div class="row">
+        {foreach name=categories item=category from=$CATEGORIES}
+        
+        <div class="col-14 col-sm-6 mb-4">
+            <a href="{$category.LINK}" class="seedfinder-card text-decoration-none" title="{$category.NAME}">
+                <div class="h-100">
+                    <div class="text-center p-3 position-relative">
+                        
+                        <div class="d-flex align-items-center justify-content-center mb-3 seedfinder-icon-container">
+                            <span class="fa-solid {$category.ICON} seedfinder-category-icon" data-color="{$category.COLOR}"></span>
+                        </div>
+                        
+                        {if $category.PRODUCTS_COUNT > 0}
+                        <span class="badge bg-dark position-absolute seedfinder-badge">
+                            {$category.PRODUCTS_COUNT} {#products_label#}
+                        </span>
+                        {/if}
+                        
+                        <h5 class="card-title fw-bold mb-2 text-dark">
+                            {$category.NAME}
+                        </h5>
+                        
+                        <p class="card-text text-muted small mb-3">{$category.DESCRIPTION}</p>
+                        
+                        <span class="btn btn-sm w-100 seedfinder-category-btn" data-color="{$category.COLOR}">
+                            {#select_category#} <span class="fa-solid fa-arrow-right ms-1"></span>
+                        </span>
+                        
+                    </div>
+                </div>
+            </a>
+        </div>
+        
+        {/foreach}
+    </div>
+
+    <div>
+        <div>
+            <div class="card border-0 shadow-sm seedfinder-info-card">
+                <div class="card-body p-4">
+                    <h3 class="h5 mb-3">
+                        <span class="fa-solid fa-circle-info me-2 text-success"></span>
+                        {#info_title#}
+                    </h3>
+                    <p class="mb-2"><strong>1.</strong> {#info_step1#}</p>
+                    <p class="mb-2"><strong>2.</strong> {#info_step2#}</p>
+                    <p class="mb-0"><strong>3.</strong> {#info_step3#}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-14 col-md-4 mb-3">
+            <div class="text-center">
+                <span class="fa-solid fa-truck-fast seedfinder-benefit-icon"></span>
+                <h5 class="mt-3">{#benefit1_title#}</h5>
+                <p class="text-muted">{#benefit1_text#}</p>
+            </div>
+        </div>
+        <div class="col-14 col-md-4 mb-3">
+            <div class="text-center">
+                <span class="fa-solid fa-award seedfinder-benefit-icon"></span>
+                <h5 class="mt-3">{#benefit2_title#}</h5>
+                <p class="text-muted">{#benefit2_text#}</p>
+            </div>
+        </div>
+        <div class="col-14 col-md-4 mb-3">
+            <div class="text-center">
+                <span class="fa-solid fa-headset seedfinder-benefit-icon"></span>
+                <h5 class="mt-3">{#benefit3_title#}</h5>
+                <p class="text-muted">{#benefit3_text#}</p>
+            </div>
+        </div>
+    </div>
+
+    {if $MANUFACTURERS && count($MANUFACTURERS) > 0}
+    <div class="row mt-5">
+        <div class="col-14 ms-4">
+            <h3 class="h2 text-center mb-4">
+                <span class="fa-solid fa-star me-2 gold"></span>
+                {#top_manufacturers_title#}
+            </h3>
+        </div>
+    </div>
+    
+    <div class="row">
+        {foreach from=$MANUFACTURERS item=manufacturer}
+        <div class="col-14 col-md-6 col-lg-3 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header text-center bg-light">
+                    {if $manufacturer.IMAGE}
+                    <img src="/{$manufacturer.IMAGE}" alt="{$manufacturer.NAME}" class="img-fluid mb-2 seedfinder-manufacturer-logo">
+                    {else}
+                    <h5 class="mb-0">{$manufacturer.NAME}</h5>
+                    {/if}
+                    <small class="text-muted d-block">{$manufacturer.PRODUCT_COUNT} {#manufacturer_products_count#}</small>
+                </div>
+                <div class="card-body p-2">
+                    {foreach from=$manufacturer.PRODUCTS item=product}
+                    <div class="mb-2 pb-2 border-bottom">
+                        <a href="{$product.LINK}" class="text-decoration-none">
+                            <div class="row align-items-center">
+                                <div class="col-4">
+                                    {if $product.IMAGE}
+                                    <img src="/{$product.IMAGE}" alt="{$product.NAME}" class="img-fluid">
+                                    {/if}
+                                </div>
+                                <div class="col-8">
+                                    <small class="d-block fw-bold text-dark seedfinder-product-name">{$product.NAME|truncate:40}</small>
+                                    <small class="text-primary fw-bold">{$product.PRICE}</small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    {/foreach}
+                </div>
+                <div class="card-footer text-center">
+                    <a href="{$manufacturer.LINK}" class="btn btn-sm btn-outline-primary">
+                        {#manufacturer_all_products#} <span class="fa-solid fa-arrow-right ms-1"></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {/foreach}
+    </div>
+    {/if}
+
+{else}
+    {* ========================================== *}
+    {* STUFE 2: Produkte mit Filtern              *}
+    {* v32.1.0-bs5: BS5.3 + FA7 Pro Migration    *}
+    {* ========================================== *}
+    <div class="mb-4">
+        <div class="col-14">
+            
+            <div class="text-center">
+                <h2 class="h1 mb-2">{$CATEGORY_NAME}</h2>
+                              
+               
+            </div>
+        </div>
+    </div>
+    
+    {if $FILTERS && count($FILTERS) > 0}
+        {include file="`$smarty.const.CURRENT_TEMPLATE`/module/seedfinder_filters_accordion.html"}
+    {/if}
+    
+    <button type="button" class="floating-filter-btn d-md-none open-filters-btn" id="floating-filter-btn" title="{#filter_open_button#}">
+        <span class="fa-solid fa-filter"></span>
+    </button>
+    
+    <div class="row mb-3 d-none" id="active-filters-card">
+        <div class="col-14">
+            <div class="card shadow-sm border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <span class="fa-solid fa-circle-check me-2"></span>
+                        {#active_filters_title#}
+                    </h5>
+                </div>
+                <div class="card-body p-3">
+                    <div id="active-filters-list" class="d-flex flex-wrap"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="products-container">
+        {if isset($PAGINATION) && $PAGINATION != ''}
+            {$PAGINATION}
+        {/if}
+        
+        <div class="row" id="products-grid">
+            {if $PRODUCTS && count($PRODUCTS) > 0}
+                {include file="module/seedfinder_product_cards.html"}
+            {else}
+                <div class="col-14">
+                    <div class="alert alert-info text-center">
+                        <span class="fa-solid fa-circle-info me-2"></span>
+                        <strong>{#no_products_title#}</strong><br>
+                        {#no_products_text#}
+                    </div>
+                </div>
+            {/if}
+        </div>
+        
+        {if isset($PAGINATION) && $PAGINATION != ''}
+            {$PAGINATION}
+        {/if}
+    </div>
+    
+    <script>
+    (function() {
+        'use strict';
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Floating Filter Button Handler
+            var floatingBtn = document.getElementById('floating-filter-btn');
+            var modalBtn = document.getElementById('open-filter-modal');
+            
+            if (floatingBtn && modalBtn) {
+                floatingBtn.addEventListener('click', function() {
+                    modalBtn.click();
+                });
+            }
+            
+            // Auto-Open Filter Modal wenn URL Parameter open_filters=1
+            var urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('open_filters') === '1') {
+                console.log('URL Parameter open_filters=1 erkannt');
+                console.log('Oeffne Filter-Modal automatisch...');
+                
+                // Warte kurz damit Seite vollstaendig geladen ist
+                setTimeout(function() {
+                    if (modalBtn) {
+                        console.log('Filter-Modal Button gefunden, klicke...');
+                        modalBtn.click();
+                        
+                        // FIX: Entferne NUR open_filters Parameter, behalte stage und category!
+                        var newParams = new URLSearchParams(window.location.search);
+                        newParams.delete('open_filters');
+                        var newUrl = window.location.pathname + '?' + newParams.toString();
+                        window.history.replaceState({}, document.title, newUrl);
+                    } else {
+                        console.error('Filter-Modal Button nicht gefunden!');
+                    }
+                }, 500);
+            }
+        });
+    })();
+    </script>
+{/if}
+
+{if $STAGE == 1}{1003280|contentAnywhere|inserttags}{/if}
+{if $STAGE == 2}{1003281|contentAnywhere|inserttags}{/if}
+ 
+</div>
