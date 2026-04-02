@@ -1924,8 +1924,21 @@ window.MRH_MOBILE_CONFIG = <?php echo $_mrh_mobile_config_js; ?>;
 .mrh-mobile-search-input:focus { outline: none; }
 
 /* Global: Kein blauer Outline/Tap-Highlight im Mobile-Menü */
-.mrh-mobile-panel * { -webkit-tap-highlight-color: transparent; }
-.mrh-mobile-panel a:focus, .mrh-mobile-panel button:focus { outline: none; }
+.mrh-mobile-panel, .mrh-mobile-panel * {
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none;
+}
+.mrh-mobile-panel a, .mrh-mobile-panel button, .mrh-mobile-panel li, .mrh-mobile-panel div {
+  outline: none !important;
+  outline-offset: 0 !important;
+}
+.mrh-mobile-panel a:focus, .mrh-mobile-panel a:focus-visible,
+.mrh-mobile-panel button:focus, .mrh-mobile-panel button:focus-visible,
+.mrh-mobile-panel li:focus, .mrh-mobile-panel li:focus-visible,
+.mrh-mobile-panel div:focus, .mrh-mobile-panel div:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
 
 /* Body */
 .mrh-mobile-body {
