@@ -501,18 +501,34 @@ div.navibar,
 .mrh-nav-categories {
   display: contents;
 }
-/* Sub-Menues der CatNavi IMMER verstecken (verhindert ausgeklappte Liste beim Laden) */
-.mrh-nav-categories .CatNavi ul ul {
+/* Sub-Menues der CatNavi IMMER verstecken (verhindert ausgeklappte Liste beim Laden)
+   Struktur: ul.CatNavi > li.level1 > ul (Level-2) > li.level2 > ul (Level-3)
+   Wir verstecken ALLE ULs innerhalb der Level-1 LIs */
+.mrh-nav-categories .CatNavi > li > ul {
+  display: none !important;
+}
+/* Dropdown-Pfeile der CatNavi verstecken (werden durch Mega-Nav ersetzt) */
+.mrh-nav-categories .CatNavi > li > a > i {
   display: none !important;
 }
 /* Level-1 Items inline darstellen solange CatNavi sichtbar ist */
+.mrh-nav-categories .CatNavi {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
 .mrh-nav-categories .CatNavi > li {
-  display: inline;
+  display: inline-flex;
+  align-items: center;
 }
 .mrh-nav-categories .CatNavi > li > a {
   color: var(--mrh-menu-text, var(--tpl-menu-text, #fff));
   text-decoration: none;
-  padding: 12px 10px;
+  padding: 12px 14px;
   font-family: var(--tpl-font-heading), sans-serif;
   font-weight: 600;
   font-size: 14px;
