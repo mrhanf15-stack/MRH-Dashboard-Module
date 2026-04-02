@@ -327,36 +327,12 @@ window.MRH_MOBILE_CONFIG = <?php echo $_mrh_mobile_config_js; ?>;
 
   /* ----------------------------------------------------------
      02 FREE SHIPPING BAR: Warenkorb-Fortschritt
+     ENTFERNT - wird jetzt von FreeShippingBar Modul gesteuert
+     (templates/tpl_mrh_2026/javascript/extra/free_shipping_bar.js.php)
      ---------------------------------------------------------- */
   MRH.ShippingBar = {
-    threshold: <?php echo defined('MODULE_ORDER_TOTAL_SHIPPING_FREE_SHIPPING_OVER')
-                      ? (float)MODULE_ORDER_TOTAL_SHIPPING_FREE_SHIPPING_OVER
-                      : 50; ?>,
-
-    init: function() {
-      var bar = MRH.Utils.qs('#mrh-shipping-bar');
-      if (!bar) return;
-      this.bar = bar;
-      this.fill = MRH.Utils.qs('.mrh-progress-fill', bar);
-      this.text = MRH.Utils.qs('.mrh-shipping-text', bar);
-      this.update();
-    },
-
-    /**
-     * Fortschritt aktualisieren basierend auf Warenkorb-Wert
-     * Wird aufgerufen nach AJAX-Cart-Updates
-     */
-    update: function(cartTotal) {
-      if (!this.fill) return;
-      cartTotal = cartTotal || 0;
-      var pct = Math.min(100, Math.round((cartTotal / this.threshold) * 100));
-      this.fill.style.width = pct + '%';
-
-      if (pct >= 100 && this.text) {
-        this.text.innerHTML = '<i class="' + _normalizeFA6('fas fa-check-circle') + '"></i> Gratis Versand!';
-        this.fill.style.backgroundColor = 'var(--mrh-green-accent)';
-      }
-    }
+    init: function() {},
+    update: function() {}
   };
 
   /* ----------------------------------------------------------
@@ -1724,7 +1700,7 @@ window.MRH_MOBILE_CONFIG = <?php echo $_mrh_mobile_config_js; ?>;
      ---------------------------------------------------------- */
   function mrhInit() {
     MRH.Topbar.init();
-    MRH.ShippingBar.init();
+    // MRH.ShippingBar.init(); // Entfernt - FreeShippingBar Modul uebernimmt
     MRH.StickyHeader.init();
     MRH.BackToTop.init();
     MRH.LazyLoad.init();
