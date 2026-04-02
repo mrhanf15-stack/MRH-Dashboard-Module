@@ -1593,7 +1593,7 @@ window.MRH_MOBILE_CONFIG = <?php echo $_mrh_mobile_config_js; ?>;
       footerInfo.className = 'mrh-mobile-footer';
       // v1.8.4: Versandland entfernt (überflüssig), nur Telefon
       var _shopPhone = '<?php echo addslashes(defined("STORE_OWNER_PHONE") ? STORE_OWNER_PHONE : "+43 512 312 411"); ?>';
-      footerInfo.innerHTML = '<div class="mrh-mobile-footer-item"><i class="fa-solid fa-phone"></i> ' + _shopPhone + '</div>';
+      footerInfo.innerHTML = '<div class="mrh-mobile-footer-item"><a href="tel:' + _shopPhone.replace(/\s/g, '') + '" style="color:inherit;text-decoration:none;"><i class="fa-solid fa-phone"></i> ' + _shopPhone + '</a></div>';
       body.appendChild(footerInfo);
 
       this.panel.appendChild(body);
