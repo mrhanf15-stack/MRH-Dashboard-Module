@@ -1,6 +1,6 @@
 <?php
 /* -----------------------------------------------------------------------------------------
-   FreeShippingBar v1.3.2-mrh2026 - JavaScript fuer tpl_mrh_2026 Template
+   FreeShippingBar v1.4.0-mrh2026 - JavaScript fuer tpl_mrh_2026 Template
    
    Anpassungen gegenueber bootstrap4-Version:
    - Mini-Warenkorb: BS5 Offcanvas (#offcanvasCart .offcanvas-body) statt BS4 Dropdown
@@ -8,8 +8,10 @@
    - Warenkorb-Seite: main#main-content als Fallback-Container
    - z-index: 1050 (BS5 Offcanvas = 1045)
    - Bottom-Bar Offset: #mrhBottomBar Erkennung
+   - Header-Bar: Uebernimmt bestehenden #mrh-shipping-bar Container
    - 100% Vanilla JS (kein jQuery)
    
+   v1.4.0: Header-Bar Integration (#mrh-shipping-bar), Offcanvas-Warenkorb
    v1.3.2: Polling von 5s auf 30s, Tab-Visibility-Check
    
    Copyright (c) 2026 FreeShippingBar
@@ -52,7 +54,7 @@ if (defined('MODULE_FREE_SHIPPING_BAR_STATUS') && MODULE_FREE_SHIPPING_BAR_STATU
     $fsb_lang = isset($_SESSION['language']) ? $_SESSION['language'] : 'german';
 ?>
 <style>
-/* ===== FreeShippingBar v1.3.2-mrh2026 ===== */
+/* ===== FreeShippingBar v1.4.0-mrh2026 ===== */
 
 /* ===== Fixierter Balken (unten/oben) ===== */
 #fsb-container {
@@ -166,6 +168,20 @@ if (defined('MODULE_FREE_SHIPPING_BAR_STATUS') && MODULE_FREE_SHIPPING_BAR_STATU
   height: 8px;
 }
 
+/* ===== Eingebetteter Header-Balken (#mrh-shipping-bar) ===== */
+#mrh-shipping-bar[data-fsb-active] .mrh-shipping-text .fsb-icon {
+  margin-right: 4px;
+}
+#mrh-shipping-bar[data-fsb-active] .mrh-shipping-text .fsb-amount {
+  font-weight: 700;
+}
+#mrh-shipping-bar[data-fsb-active] .mrh-shipping-text.fsb-success {
+  color: var(--mrh-green-accent, #5db233);
+}
+#mrh-shipping-bar[data-fsb-active] .mrh-progress-fill.fsb-complete {
+  background-color: var(--mrh-green-accent, #5db233);
+}
+
 /* ===== Mobil: Kompakter ===== */
 @media (max-width: 576px) {
   #fsb-bar {
@@ -265,6 +281,30 @@ if (defined('MODULE_FREE_SHIPPING_BAR_STATUS') && MODULE_FREE_SHIPPING_BAR_STATU
       return parseInt(sel.value);
     }
     return 0;
+  }
+  
+  // ===== Header-Bar uebernehmen (#mrh-shipping-bar) =====
+  // Uebernimmt den bestehenden Container zwischen Topbar und Header
+  // und ersetzt die statische MRH.ShippingBar Logik mit dynamischen AJAX-Daten
+  function fsbInitHeaderBar() {
+    var headerBar = document.getElementById('mrh-shipping-bar');
+    if (!headerBar) return;
+    
+    // MRH.ShippingBar deaktivieren (mrh-core.js.php)
+    if (typeof MRH !== 'undefined' && MRH.ShippingBar) {
+      MRH.ShippingBar.update = function() {}; // Noop
+    }
+    
+    // data-fsb Attribute setzen fuer CSS-Targeting
+    headerBar.setAttribute('data-fsb-active', 'true');
+    
+    // Bestehende Elemente finden
+    var textEl = headerBar.querySelector('.mrh-shipping-text');
+    var fillEl = headerBar.querySelector('.mrh-progress-fill');
+    
+    // data-fsb Attribute setzen fuer fsbUpdateAll()
+    if (textEl) textEl.setAttribute('data-fsb', 'header-text');
+    if (fillEl) fillEl.setAttribute('data-fsb', 'header-fill');
   }
   
   // ===== Fixierter Balken erstellen =====
@@ -431,6 +471,12 @@ if (defined('MODULE_FREE_SHIPPING_BAR_STATUS') && MODULE_FREE_SHIPPING_BAR_STATU
     if (cartPageBar) {
       cartPageBar.style.display = hideForEmpty ? 'none' : 'block';
     }
+    
+    // ===== Header-Bar (#mrh-shipping-bar) =====
+    var headerBar = document.getElementById('mrh-shipping-bar');
+    if (headerBar && headerBar.hasAttribute('data-fsb-active')) {
+      headerBar.style.display = (hideForEmpty && data.cart_count < 1) ? '' : '';
+    }
   }
   
   // ===== AJAX Fetch =====
@@ -561,6 +607,7 @@ if (defined('MODULE_FREE_SHIPPING_BAR_STATUS') && MODULE_FREE_SHIPPING_BAR_STATU
   function fsbInit() {
     fsbReadCurrentCountry();
     
+    fsbInitHeaderBar();
     fsbCreateFixedBar();
     fsbCreateMinicartBar();
     fsbCreateCartPageBar();
