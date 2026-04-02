@@ -11,6 +11,7 @@
    - Header-Bar: Uebernimmt bestehenden #mrh-shipping-bar Container
    - 100% Vanilla JS (kein jQuery)
    
+   v1.5.0: Header-Bar auf allen Seiten per JS erstellen, CSS-Klassen Fix, Container-Padding
    v1.4.2: Fixierter Balken komplett per PHP deaktiviert (tpl_mrh_2026 nutzt Header-Bar)
    v1.4.1: Fixierter Balken deaktiviert wenn Header-Bar vorhanden
    v1.4.0: Header-Bar Integration (#mrh-shipping-bar), Offcanvas-Warenkorb
@@ -53,7 +54,7 @@ if (defined('MODULE_FREE_SHIPPING_BAR_STATUS') && MODULE_FREE_SHIPPING_BAR_STATU
     $fsb_lang = isset($_SESSION['language']) ? $_SESSION['language'] : 'german';
 ?>
 <style>
-/* ===== FreeShippingBar v1.4.2-mrh2026 ===== */
+/* ===== FreeShippingBar v1.5.0-mrh2026 ===== */
 
 /* ===== Fixierter Balken (unten/oben) ===== */
 #fsb-container {
@@ -282,31 +283,59 @@ if (defined('MODULE_FREE_SHIPPING_BAR_STATUS') && MODULE_FREE_SHIPPING_BAR_STATU
     return 0;
   }
   
-  // ===== Header-Bar uebernehmen (#mrh-shipping-bar) =====
-  // Uebernimmt den bestehenden Container zwischen Topbar und Header
-  // und ersetzt die statische MRH.ShippingBar Logik mit dynamischen AJAX-Daten
+  // ===== Header-Bar erstellen/uebernehmen =====
+  // Erstellt den #mrh-shipping-bar Container per JS wenn er nicht im Template existiert.
+  // Wird zwischen Topbar und Header eingefuegt (Position 02 im Wireframe).
   function fsbInitHeaderBar() {
     var headerBar = document.getElementById('mrh-shipping-bar');
-    if (!headerBar) return;
+    
+    // Wenn Container nicht existiert: per JS erstellen
+    if (!headerBar) {
+      headerBar = document.createElement('div');
+      headerBar.id = 'mrh-shipping-bar';
+      headerBar.innerHTML = '<div class="container">' +
+        '<div class="mrh-progress-track">' +
+          '<div class="mrh-progress-fill" style="width:0%" data-fsb="header-fill"></div>' +
+        '</div>' +
+        '<span class="mrh-shipping-text" data-fsb="header-text">' +
+          '<span class="fsb-icon">&#128666;</span>' + fsbGetText('remaining', fsbThresholdFormatted) +
+        '</span>' +
+      '</div>';
+      
+      // Einfuegen: nach .mrh-mega-nav-bar oder nach #topbar, vor #main-header
+      var megaNav = document.querySelector('.mrh-mega-nav-bar');
+      var mainHeader = document.getElementById('main-header');
+      if (megaNav && megaNav.parentNode) {
+        megaNav.parentNode.insertBefore(headerBar, megaNav.nextSibling);
+      } else if (mainHeader && mainHeader.parentNode) {
+        mainHeader.parentNode.insertBefore(headerBar, mainHeader);
+      } else {
+        // Fallback: An den Anfang des Body
+        document.body.insertBefore(headerBar, document.body.firstChild);
+      }
+    } else {
+      // Container existiert: data-fsb Attribute auf bestehende Elemente setzen
+      var textEl = headerBar.querySelector('.mrh-shipping-text');
+      var fillEl = headerBar.querySelector('.mrh-progress-fill');
+      if (textEl) textEl.setAttribute('data-fsb', 'header-text');
+      if (fillEl) fillEl.setAttribute('data-fsb', 'header-fill');
+    }
     
     // MRH.ShippingBar deaktivieren (mrh-core.js.php)
     if (typeof MRH !== 'undefined' && MRH.ShippingBar) {
       MRH.ShippingBar.update = function() {}; // Noop
     }
     
-    // data-fsb Attribute setzen fuer CSS-Targeting
+    // data-fsb-active Attribut setzen
     headerBar.setAttribute('data-fsb-active', 'true');
     
-    // Fixierten Balken deaktivieren – Header-Bar uebernimmt
-    fsbShowFixed = false;
-    
-    // Bestehende Elemente finden
-    var textEl = headerBar.querySelector('.mrh-shipping-text');
-    var fillEl = headerBar.querySelector('.mrh-progress-fill');
-    
-    // data-fsb Attribute setzen fuer fsbUpdateAll()
-    if (textEl) textEl.setAttribute('data-fsb', 'header-text');
-    if (fillEl) fillEl.setAttribute('data-fsb', 'header-fill');
+    // Container-Padding entfernen fuer volle Breite
+    var container = headerBar.querySelector('.container');
+    if (container) {
+      container.style.paddingLeft = '15px';
+      container.style.paddingRight = '15px';
+      container.style.maxWidth = '100%';
+    }
   }
   
   // ===== Fixierter Balken erstellen =====
@@ -424,22 +453,32 @@ if (defined('MODULE_FREE_SHIPPING_BAR_STATUS') && MODULE_FREE_SHIPPING_BAR_STATU
     var fillEls = document.querySelectorAll('[data-fsb$="-fill"]');
     
     for (var t = 0; t < textEls.length; t++) {
+      // Originale CSS-Klassen beibehalten, nur fsb-Klassen hinzufuegen/entfernen
+      var origTextClass = textEls[t].getAttribute('data-fsb-orig-class') || textEls[t].className;
+      if (!textEls[t].hasAttribute('data-fsb-orig-class')) {
+        textEls[t].setAttribute('data-fsb-orig-class', origTextClass);
+      }
       if (data.reached) {
-        textEls[t].className = 'fsb-text fsb-success';
+        textEls[t].className = origTextClass + ' fsb-text fsb-success';
         textEls[t].innerHTML = '<span class="fsb-icon">&#10003;</span>' + textReached;
       } else {
-        textEls[t].className = 'fsb-text';
+        textEls[t].className = origTextClass + ' fsb-text';
         textEls[t].innerHTML = '<span class="fsb-icon">&#128666;</span>' + textRemaining;
       }
     }
     
     for (var f = 0; f < fillEls.length; f++) {
+      // Originale CSS-Klassen beibehalten
+      var origFillClass = fillEls[f].getAttribute('data-fsb-orig-class') || fillEls[f].className;
+      if (!fillEls[f].hasAttribute('data-fsb-orig-class')) {
+        fillEls[f].setAttribute('data-fsb-orig-class', origFillClass);
+      }
       if (data.reached) {
         fillEls[f].style.width = '100%';
-        fillEls[f].className = 'fsb-progress-fill fsb-complete';
+        fillEls[f].className = origFillClass + ' fsb-progress-fill fsb-complete';
       } else {
         fillEls[f].style.width = data.percentage + '%';
-        fillEls[f].className = 'fsb-progress-fill';
+        fillEls[f].className = origFillClass + ' fsb-progress-fill';
       }
     }
     
@@ -477,7 +516,8 @@ if (defined('MODULE_FREE_SHIPPING_BAR_STATUS') && MODULE_FREE_SHIPPING_BAR_STATU
     // ===== Header-Bar (#mrh-shipping-bar) =====
     var headerBar = document.getElementById('mrh-shipping-bar');
     if (headerBar && headerBar.hasAttribute('data-fsb-active')) {
-      headerBar.style.display = (hideForEmpty && data.cart_count < 1) ? '' : '';
+      // Header-Bar immer sichtbar lassen (zeigt Schwellenwert auch bei leerem Warenkorb)
+      headerBar.style.display = 'block';
     }
   }
   
