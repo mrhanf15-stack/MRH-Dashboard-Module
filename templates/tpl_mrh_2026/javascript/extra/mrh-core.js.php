@@ -1608,34 +1608,9 @@ window.MRH_MOBILE_CONFIG = <?php echo $_mrh_mobile_config_js; ?>;
       // === Footer-Info ===
       var footerInfo = document.createElement('div');
       footerInfo.className = 'mrh-mobile-footer';
-      // Versandland dynamisch aus Shop-Einstellungen (v1.8.3)
-      // modified eCommerce: Lieferland aus Session oder Shop-Default
-      var _shippingCountry = '<?php
-        $_mrh_country = "";
-        // 1. Aus Lieferadresse (eingeloggt + Lieferland gewaehlt)
-        if (isset($_SESSION["delivery_country_id"]) && (int)$_SESSION["delivery_country_id"] > 0) {
-          $_mrh_country = xtc_get_country_name((int)$_SESSION["delivery_country_id"]);
-        }
-        // 2. Aus Kundenland (eingeloggt)
-        elseif (isset($_SESSION["customer_country_id"]) && (int)$_SESSION["customer_country_id"] > 0) {
-          $_mrh_country = xtc_get_country_name((int)$_SESSION["customer_country_id"]);
-        }
-        // 3. Aus Laenderauswahl im Einstellungen-Panel
-        elseif (isset($_SESSION["customers_country_code"]) && $_SESSION["customers_country_code"] !== "") {
-          $__cc = xtc_db_query("SELECT countries_name FROM countries WHERE countries_iso_code_2 = \"" . xtc_db_input($_SESSION["customers_country_code"]) . "\" LIMIT 1");
-          $__cr = xtc_db_fetch_array($__cc);
-          if ($__cr) $_mrh_country = $__cr["countries_name"];
-        }
-        // 4. Shop-Default
-        if (!$_mrh_country && defined("STORE_COUNTRY")) {
-          $_mrh_country = xtc_get_country_name((int)STORE_COUNTRY);
-        }
-        if (!$_mrh_country) $_mrh_country = "\u00d6sterreich";
-        echo addslashes($_mrh_country);
-      ?>';
+      // v1.8.4: Versandland entfernt (überflüssig), nur Telefon
       var _shopPhone = '<?php echo addslashes(defined("STORE_OWNER_PHONE") ? STORE_OWNER_PHONE : "+43 512 312 411"); ?>';
-      footerInfo.innerHTML = '<div class="mrh-mobile-footer-item"><i class="fa-solid fa-phone"></i> ' + _shopPhone + '</div>' +
-        '<div class="mrh-mobile-footer-item"><i class="fa-solid fa-truck-fast"></i> Versand: ' + _shippingCountry + '</div>';
+      footerInfo.innerHTML = '<div class="mrh-mobile-footer-item"><i class="fa-solid fa-phone"></i> ' + _shopPhone + '</div>';
       body.appendChild(footerInfo);
 
       this.panel.appendChild(body);
