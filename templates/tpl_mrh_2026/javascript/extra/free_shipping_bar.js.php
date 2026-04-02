@@ -11,6 +11,7 @@
    - Header-Bar: Uebernimmt bestehenden #mrh-shipping-bar Container
    - 100% Vanilla JS (kein jQuery)
    
+   v1.4.2: Fixierter Balken komplett per PHP deaktiviert (tpl_mrh_2026 nutzt Header-Bar)
    v1.4.1: Fixierter Balken deaktiviert wenn Header-Bar vorhanden
    v1.4.0: Header-Bar Integration (#mrh-shipping-bar), Offcanvas-Warenkorb
    v1.3.2: Polling von 5s auf 30s, Tab-Visibility-Check
@@ -40,14 +41,11 @@ if (defined('MODULE_FREE_SHIPPING_BAR_STATUS') && MODULE_FREE_SHIPPING_BAR_STATU
     
     $fsb_hide_checkout_js = (defined('MODULE_FREE_SHIPPING_BAR_HIDE_CHECKOUT') && MODULE_FREE_SHIPPING_BAR_HIDE_CHECKOUT == 'true');
     
+    // tpl_mrh_2026: Fixierter Balken IMMER deaktiviert
+    // Die Header-Bar (#mrh-shipping-bar) und der Offcanvas-Warenkorb uebernehmen.
+    // Die Admin-Einstellungen SHOW_ON_ALL / SHOW_ON_CART betreffen nur den fixierten Balken
+    // und werden im tpl_mrh_2026 ignoriert.
     $fsb_show_fixed = false;
-    if ($fsb_is_checkout && $fsb_hide_checkout_js) {
-        $fsb_show_fixed = false;
-    } elseif ($fsb_is_cart && $fsb_show_on_cart) {
-        $fsb_show_fixed = true;
-    } elseif ($fsb_show_on_all && !$fsb_is_checkout) {
-        $fsb_show_fixed = true;
-    }
     
     $fsb_show_minicart = !($fsb_is_checkout && $fsb_hide_checkout_js);
     
@@ -55,7 +53,7 @@ if (defined('MODULE_FREE_SHIPPING_BAR_STATUS') && MODULE_FREE_SHIPPING_BAR_STATU
     $fsb_lang = isset($_SESSION['language']) ? $_SESSION['language'] : 'german';
 ?>
 <style>
-/* ===== FreeShippingBar v1.4.1-mrh2026 ===== */
+/* ===== FreeShippingBar v1.4.2-mrh2026 ===== */
 
 /* ===== Fixierter Balken (unten/oben) ===== */
 #fsb-container {
