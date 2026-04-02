@@ -1,6 +1,6 @@
 <?php
 /* -----------------------------------------------------------------------------------------
-   $Id: mrh_dashboard.php 1.4.0 2026-04-01 Mr. Hanf $
+   $Id: mrh_dashboard.php 1.8.4 2026-04-02 Mr. Hanf $
 
    MRH Dashboard - Admin-Seite
    https://mr-hanf.at
@@ -9,6 +9,31 @@
    -----------------------------------------------------------------------------------------
    Released under the GNU General Public License
    ---------------------------------------------------------------------------------------*/
+
+// === Error-Logging (v1.8.4) ===
+$_mrh_log_dir = dirname(__FILE__) . '/../includes/external/mrh_dashboard/logs';
+if (!is_dir($_mrh_log_dir)) @mkdir($_mrh_log_dir, 0755, true);
+$_mrh_log_file = $_mrh_log_dir . '/mrh_dashboard_error.log';
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+ini_set('error_log', $_mrh_log_file);
+error_reporting(E_ALL);
+set_error_handler(function($errno, $errstr, $errfile, $errline) use ($_mrh_log_file) {
+  $msg = date('[Y-m-d H:i:s]') . " PHP Error [$errno]: $errstr in $errfile on line $errline" . PHP_EOL;
+  @file_put_contents($_mrh_log_file, $msg, FILE_APPEND);
+  return false;
+});
+set_exception_handler(function($e) use ($_mrh_log_file) {
+  $msg = date('[Y-m-d H:i:s]') . " Uncaught Exception: " . $e->getMessage() . " in " . $e->getFile() . " on line " . $e->getLine() . PHP_EOL . $e->getTraceAsString() . PHP_EOL;
+  @file_put_contents($_mrh_log_file, $msg, FILE_APPEND);
+});
+register_shutdown_function(function() use ($_mrh_log_file) {
+  $error = error_get_last();
+  if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+    $msg = date('[Y-m-d H:i:s]') . " FATAL: {$error['message']} in {$error['file']} on line {$error['line']}" . PHP_EOL;
+    @file_put_contents($_mrh_log_file, $msg, FILE_APPEND);
+  }
+});
 
 require('includes/application_top.php');
 
