@@ -1,0 +1,165 @@
+{*
+ * Product Compare v2.0.0-mrh2026 - 3-Column Card Layout
+ * Basiert auf v2.0.3 (bootstrap4) mit BS5.3 + FA7 Pro Anpassungen:
+ * - mr-* → me-*, ml-* → ms-*
+ * - text-right → text-end
+ * - fa fa-* → fa-solid fa-*
+ * - bg-white → bg-body (BS5.3)
+ * - contentAnywhere support for custom content blocks
+ * - history.back() for "Weiter einkaufen" button
+ * - Images position absolute + object-fit cover for FORCED equal height
+ * - Legend hidden via CSS
+ * - Fixed image height for alignment
+ * - Short description fixed height with scroll (550px)
+ * - Price/Buttons in card-footer at bottom
+ * @version   2.0.0-mrh2026
+ * @date      2026-04-02
+ *}
+{assign "dummy" ""}
+
+<link rel="stylesheet" href="{$smarty.const.DIR_WS_CATALOG}templates/{$smarty.const.CURRENT_TEMPLATE}/css/product_compare.css">
+
+<div class="product-compare-page">
+  
+  <h1 class="card p-2 bg-h mb-3">
+    <span class="fa-solid fa-scale-balanced me-2"></span>{$PC_PAGE_TITLE}
+    {if $COMPARE_COUNT > 0}
+      <small class="text-muted ms-2">({$COMPARE_COUNT} {if $COMPARE_COUNT == 1}Produkt{else}Produkte{/if})</small>
+    {/if}
+  </h1>
+
+  {* SEO Content: Einleitung (Datei muss existieren, ggf. leer) *}
+  {include file="module/product_compare_intro.html"}
+
+  
+  {* === contentAnywhere: Top Content Block === *}
+  {* Ersetze die Content-ID (z.B. 99) mit der gewuenschten coID aus dem Content Manager *}
+  {* Beispiel: {99|contentAnywhere|inserttags} *}
+  
+  {if $COMPARE_COUNT == 0}
+    <div class="card mb-4">
+      <div class="card-body text-center py-5">
+        <span class="fa-solid fa-scale-balanced fa-3x text-muted mb-3 d-block"></span>
+        <h3 class="text-muted">{$PC_EMPTY_TEXT}</h3>
+        <p class="text-muted">{$PC_EMPTY_HINT}</p>
+        <a href="javascript:history.back();" class="btn btn-primary mt-3">
+          <span class="fa-solid fa-arrow-left me-1"></span>{$PC_BACK_BUTTON}
+        </a>
+      </div>
+    </div>
+    
+  {else}
+    
+    {* Action buttons *}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <a href="javascript:history.back();" class="btn btn-outline-secondary btn-sm">
+        <span class="fa-solid fa-arrow-left me-1"></span>{$PC_BACK_BUTTON}
+      </a>
+      <a href="{$CLEAR_LINK}" class="btn btn-outline-danger btn-sm" onclick="event.preventDefault();if(confirm('Vergleichsliste wirklich leeren?'))ProductCompare.clearAll();">
+        <span class="fa-solid fa-trash me-1"></span>{$PC_CLEAR_BUTTON}
+      </a>
+    </div>
+    
+    {* Product cards - 3-column grid *}
+    <div class="row">
+    {foreach from=$COMPARE_PRODUCTS item=module_data name=compare_loop}
+      <div class="col-sm-12 col-md-6 col-lg-4 mb-3 listingbox">
+        <div class="card h-100 d-flex flex-column">
+          
+          {* Remove button *}
+          <a href="{$module_data.PRODUCTS_REMOVE_LINK}" class="compare-remove-btn" title="{$PC_REMOVE_BUTTON}">
+            <span class="fa-solid fa-xmark"></span>
+          </a>
+          
+          {* Product image - fixed height, object-fit cover *}
+          <a href="{$module_data.PRODUCTS_LINK}" class="card-body text-center lb_image compare-img-box">
+            {if $module_data.PRODUCTS_IMAGE != ''}
+              <img class="compare-product-img" src="{$module_data.PRODUCTS_IMAGE}" alt="{$module_data.PRODUCTS_NAME|onlytext}" title="{$module_data.PRODUCTS_NAME|onlytext}">
+            {/if}
+          </a>
+          
+          {* Product title and manufacturer *}
+          <div class="card-body pt-0 pb-1">
+            <h2 class="lb_title lead text-secondary mb-1 mt-3"><a href="{$module_data.PRODUCTS_LINK}">{$module_data.PRODUCTS_NAME}</a></h2>
+            {if !empty($module_data.MANUFACTURER)}
+              <footer class="blockquote-footer mb-1"><cite title="{$module_data.PRODUCTS_NAME|onlytext} - {$module_data.MANUFACTURER|onlytext}">{$module_data.MANUFACTURER}</cite></footer>
+            {/if}
+          </div>
+          
+          {* Short description - fixed height with scroll *}
+          {if !empty($module_data.PRODUCTS_SHORT_DESCRIPTION)}
+          <div class="card-body pt-0 pb-1 compare-desc-box align-self-start">
+            <div class="lr_desc teabls table-striped">{$module_data.PRODUCTS_SHORT_DESCRIPTION}</div>
+          </div>
+          {/if}
+          
+          {* Options, Price, Buttons - card-footer pushed to bottom *}
+          <div class="card-footer bg-body mt-auto compare-footer">
+            {$module_data.FORM_ACTION}
+            
+            {* Product attributes/options *}
+            {if $module_data.PRODUCT_ATTRIBUTES}
+              <div id="options{$module_data.PRODUCTS_ID}" class="cf">{$module_data.PRODUCT_ATTRIBUTES|replace:' p-2':''}</div>
+            {/if}
+            
+            {* Shipping, Price, Tax *}
+            <div class="text-end mt-2">
+              <div class="lb_shipping small">{if $module_data.PRODUCTS_SHIPPING_NAME}{#text_shippingtime#} {$module_data.PRODUCTS_SHIPPING_NAME_LINK}{else}&nbsp;{/if}</div>
+              <div>
+                {foreach name=inner item=price_data from=$module_data.PRODUCTS_PRICE_ARRAY}
+                  {include file="module/includes/price_box.html"}
+                {/foreach}
+                {if $module_data.PRODUCTS_PRICE_ARRAY.0.PRODUCTS_PRICE_FLAG != 'NotAllowed'}
+                  {if $module_data.PRODUCTS_VPE}
+                    <div class="lb_vpe text-secondary small">{$module_data.PRODUCTS_VPE}</div>
+                  {/if}
+                {/if}
+              </div>
+              {if $module_data.PRODUCTS_PRICE_ARRAY.0.PRODUCTS_PRICE_FLAG != 'NotAllowed'}
+                <div class="lb_tax text-secondary small mb-1">{if isset($module_data.PRODUCTS_LINK_REQUESTLIST_NOW)}{#rq_text_rental#}{else}{$module_data.PRODUCTS_TAX_INFO}{$module_data.PRODUCTS_SHIPPING_LINK}{/if}</div>
+              {/if}
+            </div>
+            
+            {* Buttons: Qty + Cart + Wishlist + Details *}
+            <div class="text-end mt-2">
+              {if $module_data.PRODUCTS_SHIPPINGTIME != '4'}
+                {if $module_data.PRODUCTS_BUTTON_BUY_NOW || ($module_data.PRODUCTS_FSK18 != '0' && $smarty.const.SHOW_BUTTON_BUY_NOW != 'false')}
+                  {if defined($module_data.QTYPD_STATUS) && $module_data.QTYPD_STATUS == 'true'}
+                    {$module_data.ADD_QTYPD|replace:'select':'select class="form-control form-control-sm listingDropDown"'}
+                  {else}
+                    {$module_data.ADD_QTY|replace:'input':'input class="form-control form-control-sm listingDropDown"'}
+                  {/if}
+                  {$module_data.PRODUCTS_ADD_CART_BUTTON}&nbsp;&nbsp;
+                {/if}
+              {/if}
+              {if !empty($module_data.PRODUCTS_LINK_WISHLIST_NOW)} {$smarty.const.TEXT_TO_WISHLIST|bs4button:'button_wishlist_now':'name="wishlist"':true}&nbsp;&nbsp;{/if}{$module_data.PRODUCTS_BUTTON_DETAILS}
+            </div>
+            
+            {$module_data.FORM_END}
+          </div>
+          
+        </div>
+      </div>
+    {/foreach}
+    </div>
+    
+    {* Bottom action buttons *}
+    <div class="d-flex justify-content-between align-items-center mb-3 mt-3">
+      <a href="javascript:history.back();" class="btn btn-outline-secondary btn-sm">
+        <span class="fa-solid fa-arrow-left me-1"></span>{$PC_BACK_BUTTON}
+      </a>
+      <a href="{$CLEAR_LINK}" class="btn btn-outline-danger btn-sm" onclick="event.preventDefault();if(confirm('Vergleichsliste wirklich leeren?'))ProductCompare.clearAll();">
+        <span class="fa-solid fa-trash me-1"></span>{$PC_CLEAR_BUTTON}
+      </a>
+    </div>
+    
+  {/if}
+  
+    {* SEO Content: Hauptteil (Datei muss existieren, ggf. leer) *}
+  {include file="module/product_compare_main.html"}
+
+  {* === contentAnywhere: Bottom Content Block === *}
+  {* Ersetze die Content-ID (z.B. 100) mit der gewuenschten coID aus dem Content Manager *}
+  {* Beispiel: {100|contentAnywhere|inserttags} *}
+  
+</div>
