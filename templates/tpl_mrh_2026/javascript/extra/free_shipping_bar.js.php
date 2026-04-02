@@ -11,6 +11,7 @@
    - Header-Bar: Uebernimmt bestehenden #mrh-shipping-bar Container
    - 100% Vanilla JS (kein jQuery)
    
+   v1.5.1: Fix ReferenceError fsbThresholdFormatted, initiale Anzeige ohne Betrag
    v1.5.0: Header-Bar auf allen Seiten per JS erstellen, CSS-Klassen Fix, Container-Padding
    v1.4.2: Fixierter Balken komplett per PHP deaktiviert (tpl_mrh_2026 nutzt Header-Bar)
    v1.4.1: Fixierter Balken deaktiviert wenn Header-Bar vorhanden
@@ -54,7 +55,7 @@ if (defined('MODULE_FREE_SHIPPING_BAR_STATUS') && MODULE_FREE_SHIPPING_BAR_STATU
     $fsb_lang = isset($_SESSION['language']) ? $_SESSION['language'] : 'german';
 ?>
 <style>
-/* ===== FreeShippingBar v1.5.0-mrh2026 ===== */
+/* ===== FreeShippingBar v1.5.1-mrh2026 ===== */
 
 /* ===== Fixierter Balken (unten/oben) ===== */
 #fsb-container {
@@ -293,12 +294,14 @@ if (defined('MODULE_FREE_SHIPPING_BAR_STATUS') && MODULE_FREE_SHIPPING_BAR_STATU
     if (!headerBar) {
       headerBar = document.createElement('div');
       headerBar.id = 'mrh-shipping-bar';
+      // Initialer Text ohne Betrag – wird beim ersten AJAX-Update mit echten Daten ersetzt
+      var initText = fsbGetText('remaining', '...');
       headerBar.innerHTML = '<div class="container">' +
         '<div class="mrh-progress-track">' +
           '<div class="mrh-progress-fill" style="width:0%" data-fsb="header-fill"></div>' +
         '</div>' +
         '<span class="mrh-shipping-text" data-fsb="header-text">' +
-          '<span class="fsb-icon">&#128666;</span>' + fsbGetText('remaining', fsbThresholdFormatted) +
+          '<span class="fsb-icon">&#128666;</span>' + initText +
         '</span>' +
       '</div>';
       
