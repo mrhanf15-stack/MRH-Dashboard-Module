@@ -495,11 +495,30 @@ div.navibar,
 }
 
 /* ---- 04e: CatNavi verstecken ---- */
-/* FOUC-Fix v1.8.12: CatNavi erst verstecken wenn JS die Mega-Nav aufgebaut hat.
-   Die Klasse .mrh-mega-ready wird vom JS am <html>-Element gesetzt. */
+/* FOUC-Fix v1.8.13: CatNavi bleibt sichtbar bis JS fertig ist,
+   aber die verschachtelten Sub-Menues werden SOFORT versteckt
+   damit beim Laden nur die Level-1 Zeile sichtbar ist. */
 .mrh-nav-categories {
   display: contents;
 }
+/* Sub-Menues der CatNavi IMMER verstecken (verhindert ausgeklappte Liste beim Laden) */
+.mrh-nav-categories .CatNavi ul ul {
+  display: none !important;
+}
+/* Level-1 Items inline darstellen solange CatNavi sichtbar ist */
+.mrh-nav-categories .CatNavi > li {
+  display: inline;
+}
+.mrh-nav-categories .CatNavi > li > a {
+  color: var(--mrh-menu-text, var(--tpl-menu-text, #fff));
+  text-decoration: none;
+  padding: 12px 10px;
+  font-family: var(--tpl-font-heading), sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+}
+/* Gesamte CatNavi erst verstecken wenn JS die Mega-Nav aufgebaut hat */
 html.mrh-mega-ready .mrh-nav-categories .CatNavi {
   display: none !important;
 }
