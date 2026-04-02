@@ -14,12 +14,6 @@
    v1.7.0: Hamburger-Button Styling Fix (gleiche Größe wie Header-Icons)
    ============================================================ */
 
-// ---- MrhMegaMenuManager laden fuer dynamische Promo-Daten (Specials/New) ----
-$_mrh_mgr_file = DIR_FS_CATALOG . 'includes/external/mrh_dashboard/MrhMegaMenuManager.php';
-if (file_exists($_mrh_mgr_file) && !class_exists('MrhMegaMenuManager')) {
-    require_once($_mrh_mgr_file);
-}
-
 // ---- Mega-Menu Config direkt einlesen (statt separate JS-Datei) ----
 // Damit ist die Variable GARANTIERT verfügbar bevor das Script läuft.
 $_mrh_megamenu_js = '';
@@ -92,26 +86,9 @@ if (file_exists($_mrh_cache_file)) {
                         'url'   => isset($_mrh_p['banner']['url']) ? $_mrh_p['banner']['url'] : '',
                         'html_text' => isset($_mrh_p['banner']['html_text']) ? $_mrh_p['banner']['html_text'] : '',
                     );
-                } elseif ($_mrh_p['type'] === 'special') {
-                    // Dynamisch: Sonderangebote laden
-                    $_mrh_max = isset($_mrh_p['max_items']) ? (int)$_mrh_p['max_items'] : 3;
-                    $_mrh_parent_id = (int)$_mrh_entry['parent_id'];
-                    $_mrh_specials = array();
-                    if (class_exists('MrhMegaMenuManager')) {
-                        $_mrh_mgr_tmp = new MrhMegaMenuManager();
-                        $_mrh_specials = $_mrh_mgr_tmp->getSpecialProducts($_mrh_parent_id, $_mrh_max);
-                    }
-                    $_mrh_promo_out['products'] = $_mrh_specials;
-                } elseif ($_mrh_p['type'] === 'new') {
-                    // Dynamisch: Neue Produkte laden
-                    $_mrh_max = isset($_mrh_p['max_items']) ? (int)$_mrh_p['max_items'] : 3;
-                    $_mrh_parent_id = (int)$_mrh_entry['parent_id'];
-                    $_mrh_new_prods = array();
-                    if (class_exists('MrhMegaMenuManager')) {
-                        $_mrh_mgr_tmp = new MrhMegaMenuManager();
-                        $_mrh_new_prods = $_mrh_mgr_tmp->getNewProducts($_mrh_parent_id, $_mrh_max);
-                    }
-                    $_mrh_promo_out['products'] = $_mrh_new_prods;
+                } elseif ($_mrh_p['type'] === 'special' || $_mrh_p['type'] === 'new') {
+                    // v1.8.7: Produkte aus Cache lesen (werden bei regenerateCache geschrieben)
+                    $_mrh_promo_out['products'] = isset($_mrh_p['products']) ? $_mrh_p['products'] : array();
                 }
             }
 

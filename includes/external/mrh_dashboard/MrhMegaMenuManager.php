@@ -968,6 +968,14 @@ class MrhMegaMenuManager
                             if ($banner) {
                                 $promo_data['banner'] = $banner;
                             }
+                        } elseif ($promo_config['promo_type'] === 'special') {
+                            // v1.8.7: Specials direkt in Cache schreiben
+                            $max = isset($promo_config['max_items']) ? (int)$promo_config['max_items'] : 3;
+                            $promo_data['products'] = $this->getSpecialProducts($parent_id, $max);
+                        } elseif ($promo_config['promo_type'] === 'new') {
+                            // v1.8.7: Neue Produkte direkt in Cache schreiben
+                            $max = isset($promo_config['max_items']) ? (int)$promo_config['max_items'] : 3;
+                            $promo_data['products'] = $this->getNewProducts($parent_id, $max);
                         }
                         $promo_data['max_items'] = $promo_config['max_items'];
                     }
