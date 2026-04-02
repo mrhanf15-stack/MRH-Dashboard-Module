@@ -1374,10 +1374,30 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
         html += '<div class="form-check form-switch mt-1"><input class="form-check-input" type="checkbox" id="mobilePromoActive_' + idx + '"' + (promo.is_active ? ' checked' : '') + '></div></div>';
         html += '</div>';
 
-        // HTML-Content
+        // HTML-Content (mit WYSIWYG-Editor wie Desktop)
         if (promo.promo_type === 'html') {
-          html += '<div class="mb-2"><label class="form-label small fw-bold">HTML-Content:</label>';
-          html += '<textarea class="form-control form-control-sm" rows="4" id="mobilePromoHtml_' + idx + '">' + escapeHtml(promo.html_content || '') + '</textarea></div>';
+          html += '<div class="mb-2"><label class="form-label small fw-bold">Visueller Editor:</label>';
+          // WYSIWYG Toolbar
+          html += '<div class="wysiwyg-toolbar" style="display:flex;flex-wrap:wrap;gap:2px;padding:5px 6px;background:#f8f9fa;border:1px solid #dee2e6;border-bottom:none;border-radius:8px 8px 0 0;">';
+          html += '<button type="button" class="btn btn-sm btn-outline-secondary mwysi-btn" data-idx="' + idx + '" data-cmd="bold" title="Fett"><i class="fa-solid fa-bold"></i></button>';
+          html += '<button type="button" class="btn btn-sm btn-outline-secondary mwysi-btn" data-idx="' + idx + '" data-cmd="italic" title="Kursiv"><i class="fa-solid fa-italic"></i></button>';
+          html += '<button type="button" class="btn btn-sm btn-outline-secondary mwysi-btn" data-idx="' + idx + '" data-cmd="underline" title="Unterstrichen"><i class="fa-solid fa-underline"></i></button>';
+          html += '<span style="border-left:1px solid #ccc;margin:0 3px;"></span>';
+          html += '<button type="button" class="btn btn-sm btn-outline-secondary mwysi-btn" data-idx="' + idx + '" data-cmd="justifyLeft" title="Links"><i class="fa-solid fa-align-left"></i></button>';
+          html += '<button type="button" class="btn btn-sm btn-outline-secondary mwysi-btn" data-idx="' + idx + '" data-cmd="justifyCenter" title="Zentriert"><i class="fa-solid fa-align-center"></i></button>';
+          html += '<span style="border-left:1px solid #ccc;margin:0 3px;"></span>';
+          html += '<label class="btn btn-sm btn-outline-secondary" title="Textfarbe" style="position:relative;overflow:hidden;"><i class="fa-solid fa-font" style="color:#c00;"></i><input type="color" class="mwysi-fontcolor" data-idx="' + idx + '" value="#000000" style="position:absolute;left:0;top:0;width:100%;height:100%;opacity:0;cursor:pointer;"></label>';
+          html += '<label class="btn btn-sm btn-outline-secondary" title="Hintergrundfarbe" style="position:relative;overflow:hidden;"><i class="fa-solid fa-paintbrush"></i><input type="color" class="mwysi-backcolor" data-idx="' + idx + '" value="#ffff00" style="position:absolute;left:0;top:0;width:100%;height:100%;opacity:0;cursor:pointer;"></label>';
+          html += '<span style="border-left:1px solid #ccc;margin:0 3px;"></span>';
+          html += '<button type="button" class="btn btn-sm btn-outline-secondary mwysi-link" data-idx="' + idx + '" title="Link einf\u00fcgen"><i class="fa-solid fa-link"></i></button>';
+          html += '<button type="button" class="btn btn-sm btn-outline-secondary mwysi-image" data-idx="' + idx + '" title="Bild einf\u00fcgen"><i class="fa-solid fa-image"></i></button>';
+          html += '<button type="button" class="btn btn-sm btn-outline-secondary mwysi-btn" data-idx="' + idx + '" data-cmd="removeFormat" title="Formatierung entfernen"><i class="fa-solid fa-eraser"></i></button>';
+          html += '<button type="button" class="btn btn-sm btn-outline-warning mwysi-toggle" data-idx="' + idx + '" title="HTML-Quellcode"><i class="fa-solid fa-code"></i></button>';
+          html += '</div>';
+          // Editierbarer Bereich
+          html += '<div id="mobilePromoWysi_' + idx + '" contenteditable="true" style="border:1px solid #dee2e6;border-radius:0 0 8px 8px;padding:10px 12px;min-height:80px;max-height:200px;overflow-y:auto;background:#fff;font-size:0.9rem;line-height:1.4;outline:none;">' + (promo.html_content || '') + '</div>';
+          html += '<textarea class="form-control form-control-sm mt-1" rows="4" id="mobilePromoHtml_' + idx + '" style="font-family:monospace;font-size:0.8rem;display:none;">' + escapeHtml(promo.html_content || '') + '</textarea>';
+          html += '</div>';
         }
 
         // Banner
@@ -1393,17 +1413,100 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
       });
       c.innerHTML = html;
 
-      // Banner-Gruppen laden für Banner-Promos
+      // Banner-Gruppen laden + WYSIWYG-Editor initialisieren
       currentMobilePromos.forEach(function(promo, idx) {
         if (promo.promo_type === 'banner') {
           loadMobileBannerGroups(idx, promo.banner_group, promo.banner_id);
         }
+
+        // WYSIWYG-Editor Events für HTML-Promos
+        if (promo.promo_type === 'html') {
+          var wysi = document.getElementById('mobilePromoWysi_' + idx);
+          var ta = document.getElementById('mobilePromoHtml_' + idx);
+          if (wysi && ta) {
+            wysi.addEventListener('input', function() {
+              if (wysi.style.display !== 'none') ta.value = wysi.innerHTML;
+            });
+          }
+        }
+
         // Typ-Änderung
         var typeSel = document.getElementById('mobilePromoType_' + idx);
         if (typeSel) typeSel.addEventListener('change', function() {
           syncMobilePromosFromDOM();
           currentMobilePromos[idx].promo_type = this.value;
           renderMobilePromos();
+        });
+      });
+
+      // WYSIWYG Toolbar-Buttons (execCommand)
+      c.querySelectorAll('.mwysi-btn[data-cmd]').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          var i = this.dataset.idx;
+          var wysi = document.getElementById('mobilePromoWysi_' + i);
+          var ta = document.getElementById('mobilePromoHtml_' + i);
+          if (wysi) { wysi.focus(); document.execCommand(this.dataset.cmd, false, null); if (ta) ta.value = wysi.innerHTML; }
+        });
+      });
+
+      // Textfarbe
+      c.querySelectorAll('.mwysi-fontcolor').forEach(function(inp) {
+        inp.addEventListener('input', function() {
+          var wysi = document.getElementById('mobilePromoWysi_' + this.dataset.idx);
+          var ta = document.getElementById('mobilePromoHtml_' + this.dataset.idx);
+          if (wysi) { wysi.focus(); document.execCommand('foreColor', false, this.value); if (ta) ta.value = wysi.innerHTML; }
+        });
+      });
+
+      // Hintergrundfarbe
+      c.querySelectorAll('.mwysi-backcolor').forEach(function(inp) {
+        inp.addEventListener('input', function() {
+          var wysi = document.getElementById('mobilePromoWysi_' + this.dataset.idx);
+          var ta = document.getElementById('mobilePromoHtml_' + this.dataset.idx);
+          if (wysi) { wysi.focus(); document.execCommand('hiliteColor', false, this.value); if (ta) ta.value = wysi.innerHTML; }
+        });
+      });
+
+      // Link einfügen
+      c.querySelectorAll('.mwysi-link').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          var wysi = document.getElementById('mobilePromoWysi_' + this.dataset.idx);
+          var ta = document.getElementById('mobilePromoHtml_' + this.dataset.idx);
+          var url = prompt('Link-URL eingeben:', 'https://');
+          if (url && wysi) { wysi.focus(); document.execCommand('createLink', false, url); if (ta) ta.value = wysi.innerHTML; }
+        });
+      });
+
+      // Bild einfügen
+      c.querySelectorAll('.mwysi-image').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          var wysi = document.getElementById('mobilePromoWysi_' + this.dataset.idx);
+          var ta = document.getElementById('mobilePromoHtml_' + this.dataset.idx);
+          var url = prompt('Bild-URL eingeben:', '/images/banner/');
+          if (url && wysi) { wysi.focus(); document.execCommand('insertImage', false, url); if (ta) ta.value = wysi.innerHTML; }
+        });
+      });
+
+      // Toggle HTML-Quellcode
+      c.querySelectorAll('.mwysi-toggle').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          var i = this.dataset.idx;
+          var wysi = document.getElementById('mobilePromoWysi_' + i);
+          var ta = document.getElementById('mobilePromoHtml_' + i);
+          if (!wysi || !ta) return;
+          if (ta.style.display !== 'none') {
+            wysi.innerHTML = ta.value;
+            wysi.style.display = 'block'; ta.style.display = 'none';
+            this.classList.remove('btn-warning'); this.classList.add('btn-outline-warning');
+          } else {
+            ta.value = wysi.innerHTML;
+            ta.style.display = 'block'; wysi.style.display = 'none';
+            this.classList.remove('btn-outline-warning'); this.classList.add('btn-warning');
+          }
         });
       });
     }
@@ -1436,8 +1539,14 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
         sel.addEventListener('change', function() {
           var banner = (data.banners || []).find(function(b) { return b.id === parseInt(sel.value); });
           var prev = document.getElementById('mobilePromoBannerPreview_' + idx);
-          if (prev && banner && banner.image) {
-            prev.innerHTML = '<img src="/' + banner.image + '" alt="' + escapeHtml(banner.title) + '" style="max-width:100%;max-height:120px;"><br><small class="text-muted">' + escapeHtml(banner.title) + '</small>';
+          if (prev && banner) {
+            if (banner.image) {
+              prev.innerHTML = '<img src="/' + banner.image + '" alt="' + escapeHtml(banner.title) + '" style="max-width:100%;max-height:120px;"><br><small class="text-muted">' + escapeHtml(banner.title) + '</small>';
+            } else if (banner.html_text) {
+              prev.innerHTML = banner.html_text;
+            } else {
+              prev.innerHTML = '<span class="text-muted">' + escapeHtml(banner.title) + ' (kein Bild)</span>';
+            }
           } else if (prev) {
             prev.innerHTML = '<span class="text-muted">Kein Banner ausgewählt</span>';
           }
@@ -1466,13 +1575,20 @@ $version = defined('MODULE_MRH_DASHBOARD_VERSION') ? MODULE_MRH_DASHBOARD_VERSIO
         var posSel = document.getElementById('mobilePromoPos_' + idx);
         var activeCb = document.getElementById('mobilePromoActive_' + idx);
         var htmlTa = document.getElementById('mobilePromoHtml_' + idx);
+        var wysi = document.getElementById('mobilePromoWysi_' + idx);
         var bannerGroup = document.getElementById('mobilePromoBannerGroup_' + idx);
         var bannerSel = document.getElementById('mobilePromoBannerSelect_' + idx);
 
         if (typeSel) promo.promo_type = typeSel.value;
         if (posSel) promo.promo_position = posSel.value;
         if (activeCb) promo.is_active = activeCb.checked ? 1 : 0;
-        if (htmlTa) promo.html_content = htmlTa.value;
+        // WYSIWYG: Wenn der visuelle Editor sichtbar ist, dessen Content nehmen
+        if (wysi && wysi.style.display !== 'none') {
+          promo.html_content = wysi.innerHTML;
+          if (htmlTa) htmlTa.value = wysi.innerHTML;
+        } else if (htmlTa) {
+          promo.html_content = htmlTa.value;
+        }
         if (bannerGroup) promo.banner_group = bannerGroup.value;
         if (bannerSel) promo.banner_id = parseInt(bannerSel.value) || 0;
       });

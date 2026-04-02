@@ -1429,6 +1429,16 @@ window.MRH_MOBILE_CONFIG = <?php echo $_mrh_mobile_config_js; ?>;
         body.appendChild(topPromoArea);
       }
 
+      // Name-zu-ID Mapping aus Mega-Menu Config aufbauen
+      // (SEO-URLs enthalten keine cPath-Parameter, daher matchen wir per Kategorie-Name)
+      var _nameToId = {};
+      var _megaCfg = window.MRH_MEGAMENU_CONFIG || [];
+      _megaCfg.forEach(function(cat) {
+        if (cat.parent_name && cat.parent_id) {
+          _nameToId[cat.parent_name.toLowerCase().trim()] = String(cat.parent_id);
+        }
+      });
+
       // CatNavi Elemente auslesen und als Offcanvas-Liste aufbauen
       var catItems = sourceNav.querySelectorAll(':scope > ul.CatNavi > li.level1');
       if (catItems.length === 0) {
@@ -1456,6 +1466,10 @@ window.MRH_MOBILE_CONFIG = <?php echo $_mrh_mobile_config_js; ?>;
         if (!catId) {
           var classMatch = li.className.match(/cat_(\d+)/);
           if (classMatch) catId = classMatch[1];
+        }
+        // Fallback: Name-zu-ID Mapping (fuer SEO-URLs ohne cPath)
+        if (!catId && text) {
+          catId = _nameToId[text.toLowerCase().trim()] || '';
         }
 
         var navItem = document.createElement('li');
