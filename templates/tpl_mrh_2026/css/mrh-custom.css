@@ -137,14 +137,7 @@ h1, h2, h3, h4, h5, h6,
   background-color: var(--tpl-bg-color);
   transition: box-shadow 0.3s ease, padding 0.3s ease;
 }
-/* Header Container: Volle Breite nutzen */
-#main-header > .container,
-#main-header > .container-fluid,
-#main-header .container {
-  max-width: 100%;
-  padding-left: 15px;
-  padding-right: 15px;
-}
+/* Header Container: Standard-Padding beibehalten */
 #main-header {
   position: relative;
   z-index: 10;
